@@ -3,14 +3,14 @@
 
 #include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
 #include <CGAL/Polyhedron_3.h>
-//#include <CGAL/Polyhedron_incremental_builder_3.h>
+#include <CGAL/Polyhedron_incremental_builder_3.h>
 #include <CGAL/Aff_transformation_3.h>
 #include <CGAL/AABB_tree.h>
 #include <CGAL/AABB_traits.h>
 #include <CGAL/AABB_face_graph_triangle_primitive.h>
-//#include <CGAL/intersections.h>
-//#include <CGAL/Nef_polyhedron_3.h>
-//#include <CGAL/convex_decomposition_3.h>
+#include <CGAL/intersections.h>
+#include <CGAL/Nef_polyhedron_3.h>
+#include <CGAL/convex_decomposition_3.h>
 //#include <CGAL/IO/STL.h>
 #include <fstream>
 
@@ -24,7 +24,7 @@ typedef CGAL::Aff_transformation_3<Kernel> Transformation;
 typedef CGAL::AABB_face_graph_triangle_primitive<Polyhedron> Primitive;
 typedef CGAL::AABB_traits<Kernel, Primitive> AABB_traits;
 typedef CGAL::AABB_tree<AABB_traits> AABB_tree;
-//typedef CGAL::Nef_polyhedron_3<Kernel> Nef_polyhedron;
+typedef CGAL::Nef_polyhedron_3<Kernel> Nef_polyhedron;
 
 class Substrate
 {
@@ -55,7 +55,7 @@ public:
 
     bool collide(std::shared_ptr<Part> otherPart);
 
-    std::shared_ptr<Polyhedron> createNegative(std::shared_ptr<Polyhedron> substrate);
+    void createNegative(std::shared_ptr<Substrate> substrate);
 
 
     std::shared_ptr<Polyhedron>     getMesh()       { return mesh_; }
