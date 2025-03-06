@@ -26,9 +26,21 @@ typedef CGAL::AABB_traits<Kernel, Primitive> AABB_traits;
 typedef CGAL::AABB_tree<AABB_traits> AABB_tree;
 //typedef CGAL::Nef_polyhedron_3<Kernel> Nef_polyhedron;
 
+class Substrate
+{
+public:
+
+    Substrate(std::shared_ptr<Polyhedron> mesh) : mesh_(mesh) {}
+
+    std::shared_ptr<Polyhedron>     getMesh()       { return mesh_; }
+
+private:
+
+    std::shared_ptr<Polyhedron> mesh_;
+};
+
 class Part
 {
-
 public:
 
     enum PART_TYPE {

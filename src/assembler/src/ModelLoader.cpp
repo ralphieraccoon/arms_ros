@@ -129,32 +129,33 @@ std::shared_ptr<Assembly> ModelLoader::loadModel(const std::string& filepath)
 }
 
 
-// std::shared_ptr<Polyhedron> ModelLoader::loadSubstrate(const std::string& filepath)
-// {
-//     Assimp::Importer importer;
+std::shared_ptr<Substrate> ModelLoader::loadSubstrate(const std::string& filepath)
+{
+    Assimp::Importer importer;
 
-//     const aiScene* scene = importer.ReadFile(filepath, aiProcess_Triangulate);
+    const aiScene* scene = importer.ReadFile(filepath, aiProcess_Triangulate);
 
-//     std::shared_ptr<Polyhedron> polyhedron = std::shared_ptr<Polyhedron>(new Polyhedron());
+    std::shared_ptr<Polyhedron> polyhedron = std::shared_ptr<Polyhedron>(new Polyhedron());
 
+    std::shared_ptr<Substrate> substrate = std::shared_ptr<Substrate>(new Substrate(polyhedron));
 
-//     if (!scene) {
-//         std::cout << "Substrate scene not loaded" << std::endl;
-//         return polyhedron;
-//     }
+    if (!scene) {
+        std::cout << "Substrate scene not loaded" << std::endl;
+        return substrate;
+    }
 
-//     std::cout << "Substrate scene loaded" << std::endl;    
+    std::cout << "Substrate scene loaded" << std::endl;    
 
-//     if (scene->mNumMeshes != 1)
-//     {
-//         std::cout << "Incorrect number of meshes in substrate scene" << std::endl;
-//         return polyhedron;
-//     }
+    if (scene->mNumMeshes != 1)
+    {
+        std::cout << "Incorrect number of meshes in substrate scene" << std::endl;
+        return substrate;
+    }
     
-//     aiMesh* mesh = scene->mMeshes[0];
+    aiMesh* mesh = scene->mMeshes[0];
 
-//     BuildPolyhedron<Polyhedron::HalfedgeDS> builder(mesh);
-//     polyhedron->delegate(builder);
+    BuildPolyhedron<Polyhedron::HalfedgeDS> builder(mesh);
+    polyhedron->delegate(builder);
     
-//     return polyhedron;
-// }
+    return substrate;
+}

@@ -10,7 +10,7 @@
 #include <CGAL/Polyhedron_3.h>
 #include <CGAL/Polyhedron_incremental_builder_3.h>
 
-//class Polyhedron;
+class Substrate;
 
 class Assembly;
 
@@ -19,7 +19,7 @@ public:
     explicit ModelLoader();
     std::shared_ptr<Assembly> loadModel(const std::string& filepath);
 
-    //std::shared_ptr<Polyhedron> loadSubstrate(const std::string& filepath);
+    std::shared_ptr<Substrate> loadSubstrate(const std::string& filepath);
 
 private:
     Assimp::Importer importer_;
