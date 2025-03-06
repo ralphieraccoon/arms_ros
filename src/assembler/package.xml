@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>assembler</name>
+  <version>0.0.0</version>
+  <description>The assembler package</description>
+  <maintainer email="user@todo.com">Your Name</maintainer>
+  <license>TODO</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>std_msgs</depend>
+  <depend>CGAL</depend>
+  <depend>Assimp</depend>
+  <depend>yaml-cpp</depend>
+  <depend>ament_index_cpp</depend>
+
+  <exec_depend>ament_cmake</exec_depend>
+  <exec_depend>rclcpp</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>visualization_msgs</exec_depend>
+
+  <export>
+   <build_type>ament_cmake</build_type>
+ </export>
+</package>

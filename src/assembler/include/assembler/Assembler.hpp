@@ -1,0 +1,53 @@
+#ifndef ASSEMBLER_HPP
+#define ASSEMBLER_HPP
+
+
+#include <string>
+#include <memory>
+#include <vector>
+#include <map>
+
+
+class aiScene;
+
+class Assembly;
+
+class AssemblyNode;
+
+//class Polyhedron;
+
+class Assembler {
+
+public:
+    explicit Assembler();
+
+    void generateAssemblySequence();
+
+    void setInitialAssembly(std::shared_ptr<Assembly> initial_assembly) { initial_assembly_ = initial_assembly; }
+
+    //void setSubstrate(std::shared_ptr<Polyhedron> substrate) { negative_substrate_ = substrate; }
+
+private:
+
+    size_t nodeIdGenerator(std::vector<size_t> object_ids);
+
+    std::map<size_t, std::vector<size_t>> node_id_map_;
+
+    size_t next_node_ID_ = 0;
+
+    //std::vector<std::shared_ptr<Polyhedron>> generateNegatives();
+
+    std::vector<std::shared_ptr<AssemblyNode>> breadthFirstZAssembly();
+
+    std::vector<std::shared_ptr<AssemblyNode>> findNodeNeighbours(std::shared_ptr<AssemblyNode> node);
+
+    std::shared_ptr<Assembly> initial_assembly_;
+
+    //std::shared_ptr<Polyhedron> negative_substrate_;
+
+    std::string output_path_;
+    std::string input_path_;
+
+};
+
+#endif  // ASSEMBLER_HPP
