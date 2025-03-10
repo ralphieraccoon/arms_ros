@@ -48,7 +48,7 @@ private:
 
         //std::shared_ptr<Assembly> initial_assembly = loader_->loadModel(inputPath + "MotorMountTest v1.stl");
 
-        assembler_->setSubstrate(loader_->loadSubstrate(inputPath + "Parts_bay_socket v2.step"));
+        assembler_->setSubstrate(loader_->loadSubstrate(inputPath + "Parts_bay_socket_6mm v2.step"));
 
 
         //assembler_->setSubstrate(loader_->loadSubstrate(inputPath + "Parts_bay_socket_6mm v0.fbx"));
@@ -116,7 +116,7 @@ private:
                     break; // Skip this face entirely
                 }
 
-                CGAL::Polyhedron_3<CGAL::Epick>::Vertex_handle vh = halfedge->vertex();
+                CGAL::Polyhedron_3<CGAL::Epeck>::Vertex_handle vh = halfedge->vertex();
         
                 std::cout << "Check5" << std::endl;
 

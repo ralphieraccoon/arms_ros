@@ -397,7 +397,9 @@ std::vector<std::shared_ptr<NamedPolyhedron>> ModelLoader::loadSTEP(const std::s
         std::cout << "Number of open edges: " << border_edges.size() << std::endl;
 
         // Stitch close edges together
+        //CGAL::Polygon_mesh_processing::remove_self_intersections(*polyhedron);
         CGAL::Polygon_mesh_processing::stitch_borders(*polyhedron);
+        //CGAL::Polygon_mesh_processing::orient_polygon_soup(*polyhedron); 
 
         if (!CGAL::is_closed(*polyhedron)) {
             std::cout << "Mesh has open boundaries!" << std::endl;

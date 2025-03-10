@@ -1,7 +1,7 @@
 #ifndef PART_HPP
 #define PART_HPP
 
-#include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
+#include <CGAL/Exact_predicates_exact_constructions_kernel.h>
 #include <CGAL/Polyhedron_3.h>
 #include <CGAL/Polyhedron_incremental_builder_3.h>
 #include <CGAL/Aff_transformation_3.h>
@@ -11,6 +11,8 @@
 #include <CGAL/intersections.h>
 #include <CGAL/Nef_polyhedron_3.h>
 #include <CGAL/convex_decomposition_3.h>
+#include <CGAL/Polygon_mesh_processing/compute_normal.h>
+#include <CGAL/Polygon_mesh_processing/remove_face.h>
 //#include <CGAL/IO/STL.h>
 
 #include <CGAL/Surface_mesh.h>
@@ -20,7 +22,7 @@
 #include <fstream>
 
 
-typedef CGAL::Exact_predicates_inexact_constructions_kernel Kernel;
+typedef CGAL::Exact_predicates_exact_constructions_kernel Kernel;
 typedef Kernel::Point_3 Point;
 typedef CGAL::Polyhedron_3<Kernel> Polyhedron;
 typedef Kernel::Vector_3 Vector;
@@ -42,6 +44,8 @@ public:
     std::shared_ptr<Polyhedron>     getMesh()       { return mesh_; }
 
     void setMesh(std::shared_ptr<Polyhedron> mesh) { mesh_ = mesh; }
+
+    void centerMesh();
 
 private:
 
@@ -66,6 +70,7 @@ public:
 
     void createNegative(std::shared_ptr<Substrate> substrate, std::string filename);
 
+    void centerMesh();
 
     std::shared_ptr<Polyhedron>     getMesh()       { return mesh_; }
     PART_TYPE                       getPartType()   { return type_; }

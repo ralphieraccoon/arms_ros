@@ -32,6 +32,58 @@ bool Part::collide(std::shared_ptr<Part> otherPart)
     return false;  // No collision
 }
 
+void Part::centerMesh()
+{
+    if (mesh_ == nullptr)
+        return;
+
+    if (mesh_->size_of_vertices() == 0)
+        return;
+
+
+    //Iterate through each vertex, find the maximum and minimum along each axis, shift vertex positions so that the centorid lies at 0,0,0
+
+    Point max = mesh_->vertices_begin()->point();
+
+    Point min = mesh_->vertices_begin()->point();
+
+    for (auto vertex = mesh_->vertices_begin(); vertex != mesh_->vertices_end(); vertex++)
+    {
+        Point point = vertex->point();
+
+        if (point.x() > max.x())
+            max = Point(point.x(), max.y(), max.z());
+
+        if (point.y() > max.y())
+            max = Point(max.x(), point.y(), max.z());
+
+        if (point.z() > max.z())
+            max = Point(max.x(), max.y(), point.z());
+
+        if (point.x() < min.x())
+            min = Point(point.x(), min.y(), min.z());
+
+        if (point.y() < min.y())
+            min = Point(min.x(), point.y(), min.z());
+
+        if (point.z() < min.z())
+            min = Point(min.x(), min.y(), point.z());
+    }
+
+    Vector size = max - min;
+
+    Point initial_center = min + 0.5 * size;
+
+    Vector delta = Point(0, 0, 0) - initial_center;
+
+    //Substract initial center from each vertex to create new center of 0,0,0
+
+    for (auto vertex = mesh_->vertices_begin(); vertex != mesh_->vertices_end(); vertex++)
+    {
+        vertex->point() += delta;
+    }
+}
+
 void Part::createNegative(std::shared_ptr<Substrate> substrate, std::string filename)
 {
     std::cout << "Creating negative" << std::endl;
@@ -71,6 +123,10 @@ void Part::createNegative(std::shared_ptr<Substrate> substrate, std::string file
     std::cout << "Nef 2 created" << std::endl;
 
 
+    if (!nef_substrate.is_simple()) std::cout << "Error: Nef_substrate not simple!" << std::endl;
+    if (!nef_part.is_simple()) std::cout << "Error: Nef_part not simple!" << std::endl;
+
+
     if (nef_substrate.is_empty()) std::cout << "Error: nef_substrate is empty!" << std::endl;
     if (nef_part.is_empty()) std::cout << "Error: nef_part is empty!" << std::endl;
 
@@ -79,6 +135,13 @@ void Part::createNegative(std::shared_ptr<Substrate> substrate, std::string file
 
     std::cout << "Nefs subtracted" << std::endl;
 
+    result.regularization();  // Improves numerical stability
+    result.simplify();        // Removes unnecessary small faces
+
+    // std::ofstream out1("result.off");
+    // out1 << result;
+    // out1.close();
+
     // Convert back to Polyhedron
     std::shared_ptr<Polyhedron> cradle = std::shared_ptr<Polyhedron>(new Polyhedron());
     if (result.is_simple()) {
@@ -86,6 +149,12 @@ void Part::createNegative(std::shared_ptr<Substrate> substrate, std::string file
     } else {
         throw std::runtime_error("Resulting shape is not a valid polyhedron.");
     }
+
+    if (cradle->is_closed())
+        std::cout << "Cradle mesh is closed!" << std::endl;
+
+    else
+        std::cout << "Cradle mesh is open!" << std::endl;
 
     std::ofstream out(filename);
     if (!out) {
@@ -133,32 +202,87 @@ Point Part::getCentroid()
     double totalVolume = 0.0;
     Point origin(0, 0, 0);  // Use origin as reference for tetrahedra
 
-    // Iterate through all faces
-    for (auto f = mesh_->facets_begin(); f != mesh_->facets_end(); ++f) 
-    {
-        // Get the three vertices of the face
-        auto h = f->halfedge();
-        Point p1 = h->vertex()->point();
-        Point p2 = h->next()->vertex()->point();
-        Point p3 = h->next()->next()->vertex()->point();
+    // // Iterate through all faces
+    // for (auto f = mesh_->facets_begin(); f != mesh_->facets_end(); ++f) 
+    // {
+    //     // Get the three vertices of the face
+    //     auto h = f->halfedge();
+    //     Point p1 = h->vertex()->point();
+    //     Point p2 = h->next()->vertex()->point();
+    //     Point p3 = h->next()->next()->vertex()->point();
 
-        // Compute tetrahedron volume using determinant formula
-        double volume = CGAL::determinant(p1 - CGAL::ORIGIN, p2 - CGAL::ORIGIN, p3 - CGAL::ORIGIN) / 6.0;
-        if (volume == 0) continue;  // Skip degenerate tetrahedra
+    //     // Compute tetrahedron volume using determinant formula
+    //     double volume = CGAL::determinant(p1 - CGAL::ORIGIN, p2 - CGAL::ORIGIN, p3 - CGAL::ORIGIN) / 6.0;
+    //     if (volume == 0) continue;  // Skip degenerate tetrahedra
 
-        totalVolume += volume;
+    //     totalVolume += volume;
 
-        // Compute tetrahedron centroid
-        Point centroid = CGAL::centroid(origin, p1, p2, p3);
+    //     // Compute tetrahedron centroid
+    //     Point centroid = CGAL::centroid(origin, p1, p2, p3);
 
-        // Accumulate volume-weighted centroid contributions
-        weightedSum = weightedSum + (volume * (centroid - CGAL::ORIGIN));
+    //     // Accumulate volume-weighted centroid contributions
+    //     weightedSum = weightedSum + (volume * (centroid - CGAL::ORIGIN));
 
-    }
+    // }
 
-    return CGAL::ORIGIN + (weightedSum / totalVolume);
+    // return CGAL::ORIGIN + (weightedSum / totalVolume);
+
+
+    return origin;
 
     // Final center of mass computation
 
     //return CGAL::ORIGIN + (Point(weightedSum.x() / totalVolume, weightedSum.y() / totalVolume, weightedSum.z() / totalVolume));
+}
+
+void Substrate::centerMesh()
+{
+    if (mesh_ == nullptr)
+        return;
+
+    if (mesh_->size_of_vertices() == 0)
+        return;
+
+
+    //Iterate through each vertex, find the maximum and minimum along each axis, shift vertex positions so that the centorid lies at 0,0,0
+
+    Point max = mesh_->vertices_begin()->point();
+
+    Point min = mesh_->vertices_begin()->point();
+
+    for (auto vertex = mesh_->vertices_begin(); vertex != mesh_->vertices_end(); vertex++)
+    {
+        Point point = vertex->point();
+
+        if (point.x() > max.x())
+            max = Point(point.x(), max.y(), max.z());
+
+        if (point.y() > max.y())
+            max = Point(max.x(), point.y(), max.z());
+
+        if (point.z() > max.z())
+            max = Point(max.x(), max.y(), point.z());
+
+        if (point.x() < min.x())
+            min = Point(point.x(), min.y(), min.z());
+
+        if (point.y() < min.y())
+            min = Point(min.x(), point.y(), min.z());
+
+        if (point.z() < min.z())
+            min = Point(min.x(), min.y(), point.z());
+    }
+
+    Vector size = max - min;
+
+    Point initial_center = min + 0.5 * size;
+
+    Vector delta = Point(0, 0, 0) - initial_center;
+
+    //Substract initial center from each vertex to create new center of 0,0,0
+
+    for (auto vertex = mesh_->vertices_begin(); vertex != mesh_->vertices_end(); vertex++)
+    {
+        vertex->point() += delta;
+    }
 }

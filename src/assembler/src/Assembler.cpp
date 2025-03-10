@@ -354,6 +354,8 @@ size_t Assembler::nodeIdGenerator(std::vector<size_t> object_ids)
 
 void Assembler::generateNegatives()
 {
+    negative_substrate_->centerMesh();
+
     int i = 0;
 
     for (std::shared_ptr<Part> part : initial_assembly_->getParts())
@@ -361,6 +363,8 @@ void Assembler::generateNegatives()
         std::stringstream ss;
 
         ss << "negative_" << i << ".stl";
+
+        part->centerMesh();
 
         part->createNegative(negative_substrate_, ss.str());
 
