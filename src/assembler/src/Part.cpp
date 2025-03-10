@@ -32,14 +32,52 @@ bool Part::collide(std::shared_ptr<Part> otherPart)
     return false;  // No collision
 }
 
-void Part::createNegative(std::shared_ptr<Substrate> substrate)
+void Part::createNegative(std::shared_ptr<Substrate> substrate, std::string filename)
 {
+    std::cout << "Creating negative" << std::endl;
+
     // Convert Polyhedra to Nef Polyhedra
-    Nef_polyhedron nef_substrate(*substrate->getMesh());
-    Nef_polyhedron nef_part(*mesh_);
+
+    if (substrate == nullptr)
+    {
+        std::cout << "substrate null!" << std::endl;
+        return;
+    }
+
+    if (substrate->getMesh() == nullptr)
+    {
+        std::cout << "substrate mesh null!" << std::endl;
+        return;
+    }
+
+    SurfaceMesh mesh;
+    CGAL::copy_face_graph(*(substrate->getMesh()), mesh);
+
+    Nef_polyhedron nef_substrate(mesh);
+
+
+    //Nef_polyhedron nef_substrate(*substrate->getMesh());
+
+    std::cout << "Nef 1 created" << std::endl;
+
+
+    SurfaceMesh mesh2;
+    CGAL::copy_face_graph(*mesh_, mesh2);
+
+    Nef_polyhedron nef_part(mesh2);
+
+    //Nef_polyhedron nef_part(*mesh_);
+
+    std::cout << "Nef 2 created" << std::endl;
+
+
+    if (nef_substrate.is_empty()) std::cout << "Error: nef_substrate is empty!" << std::endl;
+    if (nef_part.is_empty()) std::cout << "Error: nef_part is empty!" << std::endl;
 
     // Perform subtraction (poly1 - poly2)
     Nef_polyhedron result = nef_substrate.difference(nef_part);
+
+    std::cout << "Nefs subtracted" << std::endl;
 
     // Convert back to Polyhedron
     std::shared_ptr<Polyhedron> cradle = std::shared_ptr<Polyhedron>(new Polyhedron());
@@ -49,7 +87,7 @@ void Part::createNegative(std::shared_ptr<Substrate> substrate)
         throw std::runtime_error("Resulting shape is not a valid polyhedron.");
     }
 
-    std::ofstream out("~/dev/negative.stl");
+    std::ofstream out(filename);
     if (!out) {
         throw std::runtime_error("Failed to open output file.");
     }

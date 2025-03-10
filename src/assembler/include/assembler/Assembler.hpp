@@ -14,7 +14,7 @@ class Assembly;
 
 class AssemblyNode;
 
-//class Polyhedron;
+class Substrate;
 
 class Assembler {
 
@@ -25,7 +25,7 @@ public:
 
     void setInitialAssembly(std::shared_ptr<Assembly> initial_assembly) { initial_assembly_ = initial_assembly; }
 
-    //void setSubstrate(std::shared_ptr<Polyhedron> substrate) { negative_substrate_ = substrate; }
+    void setSubstrate(std::shared_ptr<Substrate> substrate) { negative_substrate_ = substrate; }
 
 private:
 
@@ -35,7 +35,7 @@ private:
 
     size_t next_node_ID_ = 0;
 
-    //std::vector<std::shared_ptr<Polyhedron>> generateNegatives();
+    void generateNegatives();
 
     std::vector<std::shared_ptr<AssemblyNode>> breadthFirstZAssembly();
 
@@ -43,7 +43,7 @@ private:
 
     std::shared_ptr<Assembly> initial_assembly_;
 
-    //std::shared_ptr<Polyhedron> negative_substrate_;
+    std::shared_ptr<Substrate> negative_substrate_;
 
     std::string output_path_;
     std::string input_path_;

@@ -11,6 +11,7 @@ find_package(visualization_msgs REQUIRED)
 find_package(CGAL REQUIRED)
 #find_package(OpenGL REQUIRED)
 find_package(yaml-cpp REQUIRED)
+find_package(OpenCASCADE REQUIRED)
 #find_package(Qt5 REQUIRED)
 
 set(ASSIMP_INCLUDE_DIR "/usr/include/assimp")
@@ -20,6 +21,8 @@ set(ASSIMP_LIBRARY "/usr/lib/x86_64-linux-gnu/libassimp.so")
 include_directories(${ASSIMP_INCLUDE_DIR})
 
 include_directories(include)
+
+#include_directories(${OpenCASCADE_INCLUDE_DIR})
 
 link_directories("/usr/lib")
 
@@ -38,12 +41,15 @@ target_include_directories(assembler_node
   PRIVATE
   ${CGAL_INCLUDE_DIRS}
   ${ASSIMP_INCLUDE_DIRS}
+  #${OpenCASCADE_INCLUDE_DIR}
 )
+
 
 # Link CGAL, Assimp, and OpenGL libraries
 target_link_libraries(assembler_node
   ${CGAL_LIBRARIES}
   ${ASSIMP_LIBRARY}
+  ${OpenCASCADE_LIBRARIES}
   #OpenGL::GL
   yaml-cpp::yaml-cpp
   #Qt5::Core

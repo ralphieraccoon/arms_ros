@@ -36,6 +36,8 @@ void Assembler::generateAssemblySequence()
     if (initial_assembly_ == nullptr)
         return;
 
+    generateNegatives();
+
     std::cout << "Generating assembly" << std::endl;
 
 
@@ -350,10 +352,18 @@ size_t Assembler::nodeIdGenerator(std::vector<size_t> object_ids)
     return next_node_ID_ - 1;
 }
 
-// std::vector<std::shared_ptr<Polyhedron>> Assembler::generateNegatives()
-// {
-//     for (std::shared_ptr<Part> part : initial_assembly_->getParts())
-//     {
-//         part->createNegative(negative_substrate_);
-//     }
-// }
+void Assembler::generateNegatives()
+{
+    int i = 0;
+
+    for (std::shared_ptr<Part> part : initial_assembly_->getParts())
+    {
+        std::stringstream ss;
+
+        ss << "negative_" << i << ".stl";
+
+        part->createNegative(negative_substrate_, ss.str());
+
+        i ++;
+    }
+}

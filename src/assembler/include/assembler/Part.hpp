@@ -12,6 +12,11 @@
 #include <CGAL/Nef_polyhedron_3.h>
 #include <CGAL/convex_decomposition_3.h>
 //#include <CGAL/IO/STL.h>
+
+#include <CGAL/Surface_mesh.h>
+#include <CGAL/boost/graph/IO/polygon_mesh_io.h>
+
+
 #include <fstream>
 
 
@@ -26,13 +31,17 @@ typedef CGAL::AABB_traits<Kernel, Primitive> AABB_traits;
 typedef CGAL::AABB_tree<AABB_traits> AABB_tree;
 typedef CGAL::Nef_polyhedron_3<Kernel> Nef_polyhedron;
 
+typedef CGAL::Surface_mesh<Kernel::Point_3> SurfaceMesh;
+
 class Substrate
 {
 public:
 
-    Substrate(std::shared_ptr<Polyhedron> mesh) : mesh_(mesh) {}
+    Substrate() {}
 
     std::shared_ptr<Polyhedron>     getMesh()       { return mesh_; }
+
+    void setMesh(std::shared_ptr<Polyhedron> mesh) { mesh_ = mesh; }
 
 private:
 
@@ -55,7 +64,7 @@ public:
 
     bool collide(std::shared_ptr<Part> otherPart);
 
-    void createNegative(std::shared_ptr<Substrate> substrate);
+    void createNegative(std::shared_ptr<Substrate> substrate, std::string filename);
 
 
     std::shared_ptr<Polyhedron>     getMesh()       { return mesh_; }

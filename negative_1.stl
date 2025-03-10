@@ -1,0 +1,86 @@
+solid polyhedron
+  facet normal 0 0 -1722.25
+    outer loop
+      vertex 0 0 0
+      vertex 0 41.5 0
+      vertex 41.5 0 0
+    endloop
+  endfacet
+  facet normal 0 0 -1722.25
+    outer loop
+      vertex 41.5 0 0
+      vertex 0 41.5 0
+      vertex 41.5 41.5 0
+    endloop
+  endfacet
+  facet normal -498 0 0
+    outer loop
+      vertex 0 0 0
+      vertex 0 0 12
+      vertex 0 41.5 0
+    endloop
+  endfacet
+  facet normal -498 0 0
+    outer loop
+      vertex 0 41.5 0
+      vertex 0 0 12
+      vertex 0 41.5 12
+    endloop
+  endfacet
+  facet normal 0 -498 0
+    outer loop
+      vertex 0 0 12
+      vertex 0 0 0
+      vertex 41.5 0 0
+    endloop
+  endfacet
+  facet normal -0 -498 -0
+    outer loop
+      vertex 41.5 0 12
+      vertex 0 0 12
+      vertex 41.5 0 0
+    endloop
+  endfacet
+  facet normal 498 0 0
+    outer loop
+      vertex 41.5 0 12
+      vertex 41.5 0 0
+      vertex 41.5 41.5 0
+    endloop
+  endfacet
+  facet normal 498 0 0
+    outer loop
+      vertex 41.5 41.5 12
+      vertex 41.5 0 12
+      vertex 41.5 41.5 0
+    endloop
+  endfacet
+  facet normal 0 498 0
+    outer loop
+      vertex 0 41.5 0
+      vertex 0 41.5 12
+      vertex 41.5 41.5 0
+    endloop
+  endfacet
+  facet normal 0 498 -0
+    outer loop
+      vertex 41.5 41.5 0
+      vertex 0 41.5 12
+      vertex 41.5 41.5 12
+    endloop
+  endfacet
+  facet normal 0 0 1722.25
+    outer loop
+      vertex 0 41.5 12
+      vertex 0 0 12
+      vertex 41.5 0 12
+    endloop
+  endfacet
+  facet normal 0 0 1722.25
+    outer loop
+      vertex 41.5 41.5 12
+      vertex 0 41.5 12
+      vertex 41.5 0 12
+    endloop
+  endfacet
+endsolid polyhedron
