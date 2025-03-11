@@ -46,9 +46,12 @@ private:
 
         std::shared_ptr<Assembly> initial_assembly = loader_->loadModel(inputPath + "MotorMountTest v2.step");
 
+
+        //std::shared_ptr<Assembly> initial_assembly = loader_->loadModel(inputPath + "TestPlate.step");
+
         //std::shared_ptr<Assembly> initial_assembly = loader_->loadModel(inputPath + "MotorMountTest v1.stl");
 
-        assembler_->setSubstrate(loader_->loadSubstrate(inputPath + "Parts_bay_socket_6mm v2.step"));
+        assembler_->setSubstrate(loader_->loadSubstrate(inputPath + "Parts_bay_socket_12mm v2.step"));
 
 
         //assembler_->setSubstrate(loader_->loadSubstrate(inputPath + "Parts_bay_socket_6mm v0.fbx"));

@@ -12,7 +12,7 @@
 #include <CGAL/Nef_polyhedron_3.h>
 #include <CGAL/convex_decomposition_3.h>
 #include <CGAL/Polygon_mesh_processing/compute_normal.h>
-#include <CGAL/Polygon_mesh_processing/remove_face.h>
+#include <CGAL/boost/graph/Euler_operations.h>  // For remove_face()
 //#include <CGAL/IO/STL.h>
 
 #include <CGAL/Surface_mesh.h>
@@ -89,12 +89,98 @@ public:
 
 private:
 
+    void debugMesh(std::shared_ptr<Polyhedron> mesh, std::string name = "polyhedron");
+
+    void debugNefMesh(Nef_polyhedron mesh, std::string name = "nef_polyhedron");
+
+    void saveMesh(std::shared_ptr<Polyhedron> mesh, std::string filename);
+
+    void scaleMesh(std::shared_ptr<Polyhedron> mesh);
+
+    std::shared_ptr<Polyhedron> subtractMesh(std::shared_ptr<Polyhedron> mesh1, std::shared_ptr<Polyhedron> mesh2);
+
+    void removeOverhangs(std::shared_ptr<Polyhedron> mesh);
+
+    Point facetLowestPoint(Polyhedron::Facet_handle facet);
+
+    Point meshLowestPoint(std::shared_ptr<Polyhedron> mesh);
+
     std::shared_ptr<Polyhedron> mesh_;
 
     PART_TYPE type_;
 
     size_t id_;
 
+};
+
+class BuildTriangularPrism : public CGAL::Modifier_base<Polyhedron::HalfedgeDS> {
+    std::vector<Point> vertices;
+public:
+    BuildTriangularPrism(const std::vector<Point>& v) : vertices(v) {}
+
+    void operator()(Polyhedron::HalfedgeDS& hds) {
+        CGAL::Polyhedron_incremental_builder_3<Polyhedron::HalfedgeDS> builder(hds, true);
+        builder.begin_surface(6, 8); // 6 vertices, 8 faces
+
+        // Add vertices
+        for (const auto& v : vertices) {
+            builder.add_vertex(v);
+        }
+
+        // Bottom face
+        builder.begin_facet();
+        builder.add_vertex_to_facet(1);
+        builder.add_vertex_to_facet(2);
+        builder.add_vertex_to_facet(0);
+        builder.end_facet();
+
+        //Top face
+        builder.begin_facet();
+        builder.add_vertex_to_facet(5);
+        builder.add_vertex_to_facet(4);
+        builder.add_vertex_to_facet(3);
+        builder.end_facet();
+
+        //Side faces with bottom edge
+        builder.begin_facet();
+        builder.add_vertex_to_facet(2);
+        builder.add_vertex_to_facet(1);
+        builder.add_vertex_to_facet(4);
+        builder.end_facet();
+
+        builder.begin_facet();
+        builder.add_vertex_to_facet(1);
+        builder.add_vertex_to_facet(0);
+        builder.add_vertex_to_facet(3);
+        builder.end_facet();
+
+        builder.begin_facet();
+        builder.add_vertex_to_facet(0);
+        builder.add_vertex_to_facet(2);
+        builder.add_vertex_to_facet(5);
+        builder.end_facet();
+
+        //Side faces with top edge
+        builder.begin_facet();
+        builder.add_vertex_to_facet(3);
+        builder.add_vertex_to_facet(4);
+        builder.add_vertex_to_facet(1);
+        builder.end_facet();
+
+        builder.begin_facet();
+        builder.add_vertex_to_facet(4);
+        builder.add_vertex_to_facet(5);
+        builder.add_vertex_to_facet(2);
+        builder.end_facet();
+
+        builder.begin_facet();
+        builder.add_vertex_to_facet(5);
+        builder.add_vertex_to_facet(3);
+        builder.add_vertex_to_facet(0);
+        builder.end_facet();
+
+        builder.end_surface();
+    }
 };
 
 #endif
