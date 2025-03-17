@@ -75,17 +75,14 @@ public:
     std::string GetShapeName(const TDF_Label& label);
 
     TriangleMesh ExtractMeshFromShape(const TopoDS_Shape& shape);
-
-    Polyhedron ConvertToPolyhedron(const TriangleMesh& mesh);
-
 };
 
 template <class HDS>
-class BuildPolyhedron2 : public CGAL::Modifier_base<HDS> {
+class BuildPolyhedron : public CGAL::Modifier_base<HDS> {
     const TriangleMesh& mesh;
 
 public:
-    BuildPolyhedron2(const TriangleMesh& mesh) : mesh(mesh) {}
+    BuildPolyhedron(const TriangleMesh& mesh) : mesh(mesh) {}
 
     void operator()(HDS& hds) {
         CGAL::Polyhedron_incremental_builder_3<HDS> builder(hds, true);

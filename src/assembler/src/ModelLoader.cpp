@@ -6,13 +6,6 @@
 #include <cctype>
 #include <string>
 
-Polyhedron ModelLoader::ConvertToPolyhedron(const TriangleMesh& mesh) {
-    Polyhedron P;
-    BuildPolyhedron2<Polyhedron::HalfedgeDS> builder(mesh);
-    P.delegate(builder);
-    return P;
-}
-
 TriangleMesh ModelLoader::ExtractMeshFromShape(const TopoDS_Shape& shape) {
     TriangleMesh mesh;
     std::map<gp_Pnt, int, PointComparator> vertexMap;
@@ -189,7 +182,12 @@ std::vector<std::shared_ptr<NamedPolyhedron>> ModelLoader::loadSTEP(const std::s
         //     std::cout << face[0] << " " << face[1] << " " << face[2] << std::endl;
         // }
 
-        std::shared_ptr<Polyhedron> polyhedron = std::make_shared<Polyhedron>(ConvertToPolyhedron(mesh));
+
+        Polyhedron P;
+        BuildPolyhedron<Polyhedron::HalfedgeDS> builder(mesh);
+        P.delegate(builder);
+
+        std::shared_ptr<Polyhedron> polyhedron = std::make_shared<Polyhedron>(P);
 
         std::shared_ptr<NamedPolyhedron> named_polyhedron  = std::shared_ptr<NamedPolyhedron>(new NamedPolyhedron());
 
