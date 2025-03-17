@@ -111,6 +111,10 @@ void Part::createNegative(std::shared_ptr<Substrate> substrate, std::string file
         return;
     }
 
+    scaleMesh(mesh_);   //TODO Need to copy before scaling in future
+                        //TODO we need to make the object orthogonally convex first! Maybe we just do this by hand for now
+                        //TODO or maybe eve just convex? That might suffice for most objects
+
 
     //Find the lowest point of the substrate
     auto substrate_lowest_z = meshLowestPoint(substrate->getMesh()).z();

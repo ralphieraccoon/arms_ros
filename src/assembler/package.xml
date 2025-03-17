@@ -10,7 +10,6 @@
 
   <depend>std_msgs</depend>
   <depend>CGAL</depend>
-  <depend>Assimp</depend>
   <depend>yaml-cpp</depend>
   <depend>ament_index_cpp</depend>
   <depend>opencascade</depend>
