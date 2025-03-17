@@ -3,11 +3,5 @@ commands:
     command-properties:
       part-description: ""
       part-name: ""
-      part-id: 0
-      part-height: 100
-  - command-type: LOCATE_EXTERNAL_PART
-    command-properties:
-      part-description: ""
-      part-name: ""
       part-id: 1
       part-height: 100

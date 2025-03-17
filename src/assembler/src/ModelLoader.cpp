@@ -2,194 +2,9 @@
 #include "assembler/Assembly.hpp"
 
 #include <iostream>
-
-//TODO Just load the single aiScene as before and have an assembly class that points to a list of meshes in that assembly and just make sure to put them
-//back in the correct position after wiggling them about to do the test (will mostly happen in other library anyway) or visualization
-
-ModelLoader::ModelLoader() {}
-
-// std::shared_ptr<Assembly> ModelLoader::loadModel(const std::string& filepath) 
-// {
-//     //Create new assembly
-//     std::shared_ptr<Assembly> assembly = std::shared_ptr<Assembly>(new Assembly());
-
-//     //const aiScene* scene = importer_.ReadFile(filepath, aiProcess_Triangulate);
-//     const aiScene* scene = importer_.ReadFile(filepath, aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_RemoveRedundantMaterials);
-
-
-//     if (!scene) {
-//         std::cout << "Scene not loaded" << std::endl;
-//             return assembly;
-//     }
-
-//     std::cout << "Scene loaded" << std::endl;    
-
-
-//     aiNode* rootNode = scene->mRootNode;
-
-
-//     std::cout << "Num meshes in scene: " << scene->mNumMeshes << std::endl;
-
-//     for (unsigned int i = 0; i < scene->mNumMeshes; i ++)
-//     {
-//         std::cout << "Mesh. Num bones: " << scene->mMeshes[i]->mNumBones << " Num faces: " << scene->mMeshes[i]->mNumFaces
-//                 << " Has normals: " << scene->mMeshes[i]->HasNormals() << " Has positions: " << scene->mMeshes[i]->HasPositions() << std::endl;
-
-//         float x, y, z = 0;
-
-//         for (unsigned int j = 0; j < scene->mMeshes[i]->mNumVertices; j++)
-//         {
-//             x += scene->mMeshes[i]->mVertices[j].x;
-//             y += scene->mMeshes[i]->mVertices[j].y;
-//             z += scene->mMeshes[i]->mVertices[j].z;
-
-//             // std::cout << "Vertex: " << scene->mMeshes[i]->mVertices[j].x << " " 
-//             //                         << scene->mMeshes[i]->mVertices[j].y << " "
-//             //                         << scene->mMeshes[i]->mVertices[j].z << std::endl;
-//         }
-
-//         // for (unsigned int j = 0; j < scene->mMeshes[i]->mNumFaces; j ++)
-//         // {
-//         //     std::cout << "Face: " << scene->mMeshes[i]->mFaces[j].mIndices[0] << " "  
-//         //                             << scene->mMeshes[i]->mFaces[j].mIndices[1] << " "  
-//         //                             << scene->mMeshes[i]->mFaces[j].mIndices[2] << std::endl; 
-
-//         // }
-
-//         x = x / scene->mMeshes[i]->mNumVertices;
-//         y = y / scene->mMeshes[i]->mNumVertices;
-//         z = z / scene->mMeshes[i]->mNumVertices;
-
-//         std::cout << "Average mesh position: " << x << " " << y << " " << z << std::endl;
-//     }
-
-//     std::cout << "Name of root node: " << rootNode->mName.C_Str() << std::endl;
-
-//     std::cout << "Num meshes in root node: " << rootNode->mNumMeshes << std::endl;
-
-//     std::cout << "Num children in root node: " << rootNode->mNumChildren << std::endl;
-
-//     aiNode* topNode = rootNode->mChildren[0];
-
-//     std::cout << "Name of top node: " << topNode->mName.C_Str() << std::endl;
-
-//     std::cout << "Num meshes in top node: " << topNode->mNumMeshes << std::endl;
-
-//     std::cout << "Num children in top node: " << topNode->mNumChildren << std::endl;
-
-//     //Get mesh positions
-
-//     std::cout << "Top level node down:" << std::endl;
-
-//     for (unsigned int i = 0; i < topNode->mNumChildren; i ++)
-//     {   
-//         std::cout << std::endl;
-
-//         aiNode* nameNode = topNode->mChildren[i];
-
-
-//         std::cout << "Node. Name: " << nameNode->mName.C_Str() << " meshes: " << nameNode->mNumMeshes << " children: " << nameNode->mNumChildren << " Transform: " 
-//                     << nameNode->mTransformation.a4 << " " 
-//                     << nameNode->mTransformation.b4 << " " 
-//                     << nameNode->mTransformation.c4 << std::endl;
-
-//         for (unsigned int j = 0; j < nameNode->mNumChildren; j ++)
-//         {
-//             aiNode* nameChildNode = nameNode->mChildren[j];
-
-//             std::cout << "Node. Name: " << nameChildNode->mName.C_Str() << " meshes: " << nameChildNode->mNumMeshes << " children: " << nameChildNode->mNumChildren << " Transform: " 
-//                     << nameChildNode->mTransformation.a4 << " " 
-//                     << nameChildNode->mTransformation.b4 << " " 
-//                     << nameChildNode->mTransformation.c4 << std::endl;
-
-//             for (unsigned int k = 0; k < nameChildNode->mNumChildren; k ++)
-//             {
-//                 aiNode* nameChildChildNode = nameChildNode->mChildren[k];
-    
-//                 std::cout << "Node. Name: " << nameChildChildNode->mName.C_Str() << " meshes: " << nameChildChildNode->mNumMeshes << " children: " << nameChildChildNode->mNumChildren << " Transform: " 
-//                         << nameChildChildNode->mTransformation.a4 << " " 
-//                         << nameChildChildNode->mTransformation.b4 << " " 
-//                         << nameChildChildNode->mTransformation.c4 << std::endl;
-//             }
-//         }
-
-//     }
-
-
-//     //Iterate through each mesh, create a new part including a CGAL mesh and add it to the assembly
-//     for (size_t i = 0; i < scene->mNumMeshes; i ++)
-//     {
-//         std::shared_ptr<Polyhedron> polyhedron = std::shared_ptr<Polyhedron>(new Polyhedron());
-
-//         Part::PART_TYPE type = Part::EXTERNAL;
-
-//         aiMesh* mesh = scene->mMeshes[i];
-
-//         BuildPolyhedron<Polyhedron::HalfedgeDS> builder(mesh);
-//         polyhedron->delegate(builder);
-
-        
-//         CGAL::Polygon_mesh_processing::remove_isolated_vertices(*polyhedron);
-//         //CGAL::Polygon_mesh_processing::stitch_borders(*polyhedron);
-//         CGAL::Polygon_mesh_processing::remove_degenerate_faces(*polyhedron);
-
-//         // for (auto v = polyhedron->vertices_begin(); v != polyhedron->vertices_end(); ++v) {
-//         //     std::cout << "Vertex: " << v->point() << std::endl;
-//         // }
-        
-//         // for (auto f = polyhedron->facets_begin(); f != polyhedron->facets_end(); ++f) {
-//         //     std::cout << "Face: ";
-//         //     auto h = f->facet_begin();
-//         //     do {
-//         //         std::cout << h->vertex()->point() << " ";
-//         //         ++h;
-//         //     } while (h != f->facet_begin());
-//         //     std::cout << std::endl;
-//         // }
-
-//         std::cout << "Polyhedron has " << polyhedron->size_of_vertices() << " vertices and "
-//               << polyhedron->size_of_facets() << " faces." << std::endl;
-
-
-//         std::cout << "Is closed: " << polyhedron->is_closed() << std::endl;
-
-//         std::cout << "Self-intersects: " << CGAL::Polygon_mesh_processing::does_self_intersect(*polyhedron) << std::endl;
-
-//         std::shared_ptr<Part> part = std::shared_ptr<Part>(new Part(polyhedron, type, i));
-
-//         assembly->addPart(part);
-
-//         std::cout << "Part centroid: " << part->getCentroid().x() << " " << part->getCentroid().y() << " " << part->getCentroid().z() << std::endl;
-//     }
-
-//     return assembly;
-// }
-
-// std::string ModelLoader::GetShapeName(const TDF_Label& label) {
-//     Handle(TDataStd_Name) nameAttr;
-//     if (label.FindAttribute(TDataStd_Name::GetID(), nameAttr)) {
-//         TCollection_AsciiString asciiName(nameAttr->Get());
-//         return asciiName.ToCString();
-//     }
-//     return "Unnamed Part";
-// }
-
-
-//std::string ModelLoader::GetShapeName(const TopoDS_Shape& shape, const Handle(XCAFDoc_ShapeTool)& shapeTool) {
-    // TDF_Label label;
-    // if (!shapeTool->FindShape(shape, label)) {
-    //     return "Unnamed Shape";  // Shape not found in document structure
-    // }
-
-    // Handle(TDataStd_Name) nameAttr;
-    // if (label.FindAttribute(TDataStd_Name::GetID(), nameAttr)) {
-    //     return nameAttr->Get().ToExtString();  // Convert ExtendedString to std::string
-    // }
-
-    // return "Unnamed Shape";  // No name found
-//}
-
-
+#include <algorithm>
+#include <cctype>
+#include <string>
 
 Polyhedron ModelLoader::ConvertToPolyhedron(const TriangleMesh& mesh) {
     Polyhedron P;
@@ -197,8 +12,6 @@ Polyhedron ModelLoader::ConvertToPolyhedron(const TriangleMesh& mesh) {
     P.delegate(builder);
     return P;
 }
-
-
 
 TriangleMesh ModelLoader::ExtractMeshFromShape(const TopoDS_Shape& shape) {
     TriangleMesh mesh;
@@ -304,12 +117,12 @@ std::vector<std::shared_ptr<NamedPolyhedron>> ModelLoader::loadSTEP(const std::s
     std::cout << "Number of components: " << shapeLabels.Length() << std::endl;
 
     //TODO - check part names first and find out which ones are parts (they will be tagged)
-    int start = 1;
+    //int start = 1;
 
-    if (shapeLabels.Length() > 1)
-        start = 2;
+    //if (shapeLabels.Length() > 1)
+        //start = 2;
 
-    for (Standard_Integer i = start; i <= shapeLabels.Length(); ++i) {  //TODO
+    for (Standard_Integer i = 1; i <= shapeLabels.Length(); ++i) {  //TODO
         TDF_Label label = shapeLabels.Value(i);
         TopoDS_Shape shape = shapeTool->GetShape(label);
 
@@ -321,7 +134,7 @@ std::vector<std::shared_ptr<NamedPolyhedron>> ModelLoader::loadSTEP(const std::s
         // Generate a mesh for the part
         BRepMesh_IncrementalMesh(shape, 0.1);  // Mesh with a 0.1 tolerance
 
-        //     // Extract vertices
+        // Extract vertices
         TopExp_Explorer explorer(shape, TopAbs_FACE);
         while (explorer.More()) {
             TopoDS_Face face = TopoDS::Face(explorer.Current());
@@ -334,24 +147,24 @@ std::vector<std::shared_ptr<NamedPolyhedron>> ModelLoader::loadSTEP(const std::s
             TopLoc_Location loc;
             Handle(Poly_Triangulation) triangulation = BRep_Tool::Triangulation(face, loc);
 
-            if (!triangulation.IsNull()) {
-                std::cout << "  Face has " << triangulation->NbNodes() << " vertices and " << triangulation->NbTriangles() << " triangles." << std::endl;
+            // if (!triangulation.IsNull()) {
+            //     std::cout << "  Face has " << triangulation->NbNodes() << " vertices and " << triangulation->NbTriangles() << " triangles." << std::endl;
 
-                if (isReversed)
-                    std::cout << "REVERSED" << std::endl;
+            //     if (isReversed)
+            //         std::cout << "REVERSED" << std::endl;
 
-                for (Standard_Integer j = 1; j <= triangulation->NbNodes(); j++) {
-                    gp_Pnt p = triangulation->Node(j);
-                    std::cout << "    Vertex: (" << p.X() << ", " << p.Y() << ", " << p.Z() << ")" << std::endl;
-                }
+            //     for (Standard_Integer j = 1; j <= triangulation->NbNodes(); j++) {
+            //         gp_Pnt p = triangulation->Node(j);
+            //         std::cout << "    Vertex: (" << p.X() << ", " << p.Y() << ", " << p.Z() << ")" << std::endl;
+            //     }
 
-                for (int i = 1; i <= triangulation->NbTriangles(); ++i) {
-                    Poly_Triangle t = triangulation->Triangle(i);
-                    Standard_Integer v1, v2, v3;
-                    t.Get(v1, v2, v3);
-                    std::cout << "Triangle " << i << ": " << v1 << ", " << v2 << ", " << v3 << std::endl;
-                }
-            }
+            //     for (int i = 1; i <= triangulation->NbTriangles(); ++i) {
+            //         Poly_Triangle t = triangulation->Triangle(i);
+            //         Standard_Integer v1, v2, v3;
+            //         t.Get(v1, v2, v3);
+            //         std::cout << "Triangle " << i << ": " << v1 << ", " << v2 << ", " << v3 << std::endl;
+            //     }
+            // }
         }
 
         //Set up CGAL mesh
@@ -362,25 +175,29 @@ std::vector<std::shared_ptr<NamedPolyhedron>> ModelLoader::loadSTEP(const std::s
         std::cout << "Num vertices: " << mesh.vertices.size() << std::endl;
         std::cout << "Num faces: " << mesh.faces.size() << std::endl;
 
-        std::cout << "Vertices: " << std::endl;
+        // std::cout << "Vertices: " << std::endl;
 
-        for (auto vertex : mesh.vertices)
-        {
-            std::cout << vertex.x() << " " << vertex.y() << " " << vertex.z() << std::endl;
-        }
+        // for (auto vertex : mesh.vertices)
+        // {
+        //     std::cout << vertex.x() << " " << vertex.y() << " " << vertex.z() << std::endl;
+        // }
 
-        std::cout << "Faces: " << std::endl;
+        // std::cout << "Faces: " << std::endl;
 
-        for (auto face : mesh.faces)
-        {
-            std::cout << face[0] << " " << face[1] << " " << face[2] << std::endl;
-        }
+        // for (auto face : mesh.faces)
+        // {
+        //     std::cout << face[0] << " " << face[1] << " " << face[2] << std::endl;
+        // }
 
         std::shared_ptr<Polyhedron> polyhedron = std::make_shared<Polyhedron>(ConvertToPolyhedron(mesh));
 
         std::shared_ptr<NamedPolyhedron> named_polyhedron  = std::shared_ptr<NamedPolyhedron>(new NamedPolyhedron());
 
         named_polyhedron->polyhedron = polyhedron;
+
+
+        //Set shape name to lower case
+        std::transform(shapeName.begin(), shapeName.end(), shapeName.begin(), [](unsigned char c){ return std::tolower(c); });
 
         named_polyhedron->name = shapeName;
         
@@ -430,7 +247,19 @@ std::shared_ptr<Assembly> ModelLoader::loadModel(const std::string& filename) {
 
     for (std::shared_ptr<NamedPolyhedron> named_polyhedron : named_polyhedrons)
     {
-        Part::PART_TYPE type = Part::EXTERNAL;  //TODO
+        Part::PART_TYPE type;
+
+        if (named_polyhedron->name.find("internal") != std::string::npos)
+            type = Part::INTERNAL;
+
+        else if (named_polyhedron->name.find("external") != std::string::npos)
+            type = Part::EXTERNAL;
+
+        else if (named_polyhedron->name.find("screw") != std::string::npos)
+            type = Part::SCREW;
+
+        else
+            continue;
 
         std::shared_ptr<Part> part = std::shared_ptr<Part>(new Part(named_polyhedron->polyhedron, type, id));
 
@@ -455,7 +284,6 @@ std::shared_ptr<Substrate> ModelLoader::loadSubstrate(const std::string& filenam
     {
         std::cout << "Substrate polyhedron: " << named_polyhedron->name << std::endl;
     }
-
 
     if (named_polyhedrons.size() != 1)
     {

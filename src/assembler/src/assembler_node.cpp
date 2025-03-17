@@ -21,23 +21,19 @@ public:
         // Create a publisher for RViz visualization
         marker_pub_ = this->create_publisher<visualization_msgs::msg::Marker>("/model_loader/mesh", 10);
 
-        loadMesh(inputPath + filename);
+        loadMesh(inputPath, filename);
 
         //publishMesh(inputPath);
-
-        //assembler_->generateAssembly();
-
-
-
+        
         // Timer to publish at 1 Hz
         //timer_ = this->create_wall_timer(std::chrono::seconds(1), std::bind(&ModelLoaderNode::publishMesh, this));
     }
 
 private:
 
-    void loadMesh(std::string inputPath)
+    void loadMesh(std::string inputPath, std::string filename)
     {
-        std::shared_ptr<Assembly> initial_assembly = loader_->loadModel(inputPath);
+        std::shared_ptr<Assembly> initial_assembly = loader_->loadModel(inputPath + filename);
 
         assembler_->setSubstrate(loader_->loadSubstrate(inputPath + "Parts_bay_socket_6mm v2.step"));
 

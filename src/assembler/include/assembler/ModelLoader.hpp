@@ -57,6 +57,7 @@ struct PointComparator {
     }
 };
 
+//Wrapper class for naming meshes that are loaded with the loadSTEP function
 struct NamedPolyhedron {
     std::shared_ptr<Polyhedron> polyhedron;
     std::string name;
@@ -64,12 +65,10 @@ struct NamedPolyhedron {
 
 class ModelLoader {
 public:
-    explicit ModelLoader();
+    explicit ModelLoader() {}
     std::shared_ptr<Assembly> loadModel(const std::string& filename);
 
     std::shared_ptr<Substrate> loadSubstrate(const std::string& filename);
-
-    //std::shared_ptr<Assembly> loadSTEP(const std::string& filename);
 
     std::vector<std::shared_ptr<NamedPolyhedron>> loadSTEP(const std::string& filename);
 
@@ -79,9 +78,6 @@ public:
 
     Polyhedron ConvertToPolyhedron(const TriangleMesh& mesh);
 
-    //std::string GetShapeName(const TopoDS_Shape& shape, const Handle(XCAFDoc_ShapeTool)& shapeTool);
-
-    //std::string GetShapeName(const TDF_Label& label);
 };
 
 template <class HDS>
