@@ -362,7 +362,7 @@ void Assembler::generateNegatives()
     {
         std::stringstream ss;
 
-        ss << "negative_" << i << ".stl";
+        ss << "negative_" << i << "_" << part->getName() << ".stl";
 
         part->centerMesh();
 

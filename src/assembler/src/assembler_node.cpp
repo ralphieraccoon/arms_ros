@@ -24,7 +24,7 @@ public:
         loadMesh(inputPath, filename);
 
         //publishMesh(inputPath);
-        
+
         // Timer to publish at 1 Hz
         //timer_ = this->create_wall_timer(std::chrono::seconds(1), std::bind(&ModelLoaderNode::publishMesh, this));
     }

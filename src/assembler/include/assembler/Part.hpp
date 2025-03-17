@@ -62,7 +62,7 @@ public:
         SCREW
     };
 
-    Part(std::shared_ptr<Polyhedron> mesh, PART_TYPE type, size_t id) : mesh_(mesh), type_(type), id_(id) {}
+    Part(std::shared_ptr<Polyhedron> mesh, PART_TYPE type, size_t id, std::string name) : mesh_(mesh), type_(type), id_(id), name_(name) {}
 
     void translate(Vector translation);
 
@@ -75,6 +75,7 @@ public:
     std::shared_ptr<Polyhedron>     getMesh()       { return mesh_; }
     PART_TYPE                       getPartType()   { return type_; }
     size_t                          getId()         { return id_; }
+    std::string                     getName()       { return name_; }
 
 
     Point                           getCentroid();
@@ -110,6 +111,8 @@ private:
     PART_TYPE type_;
 
     size_t id_;
+
+    std::string name_;
 
 };
 

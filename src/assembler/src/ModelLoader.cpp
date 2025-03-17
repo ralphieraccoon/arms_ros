@@ -259,7 +259,7 @@ std::shared_ptr<Assembly> ModelLoader::loadModel(const std::string& filename) {
         else
             continue;
 
-        std::shared_ptr<Part> part = std::shared_ptr<Part>(new Part(named_polyhedron->polyhedron, type, id));
+        std::shared_ptr<Part> part = std::shared_ptr<Part>(new Part(named_polyhedron->polyhedron, type, id, named_polyhedron->name));
 
         assembly->addPart(part);
 
