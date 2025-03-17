@@ -49,7 +49,7 @@ void Assembler::generateAssemblySequence()
 
     for (std::shared_ptr<Part> part : initial_parts)
     {        
-        if (!part->getPartType() == Part::EXTERNAL)
+        if (!part->getType() == Part::EXTERNAL)
             continue;
 
         YAML::Node detect_part_command;
@@ -360,6 +360,10 @@ void Assembler::generateNegatives()
 
     for (std::shared_ptr<Part> part : initial_assembly_->getParts())
     {
+        //Only create negatives or external parts
+        if (!part->getType() == Part::EXTERNAL)
+            continue;
+
         std::stringstream ss;
 
         ss << "negative_" << i << "_" << part->getName() << ".stl";

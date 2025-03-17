@@ -73,7 +73,7 @@ public:
     void centerMesh();
 
     std::shared_ptr<Polyhedron>     getMesh()       { return mesh_; }
-    PART_TYPE                       getPartType()   { return type_; }
+    PART_TYPE                       getType()       { return type_; }
     size_t                          getId()         { return id_; }
     std::string                     getName()       { return name_; }
 
