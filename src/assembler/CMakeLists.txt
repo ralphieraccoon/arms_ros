@@ -17,7 +17,7 @@ include_directories(include)
 link_directories("/usr/lib")
 
 # Declare the package
-add_executable(assembler_node src/assembler_node.cpp src/ModelLoader.cpp src/Assembler.cpp src/Assembly.cpp src/Part.cpp)
+add_executable(assembler_node src/assembler_node.cpp src/ModelLoader.cpp src/Assembler.cpp src/Assembly.cpp src/Part.cpp src/MeshFunctions.cpp)
 
 # Link against the necessary libraries
 ament_target_dependencies(assembler_node

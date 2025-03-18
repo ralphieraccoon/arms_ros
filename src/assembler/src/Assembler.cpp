@@ -386,6 +386,8 @@ void Assembler::generateNegatives()
 
         part->createNegative(negative_substrate_, ss.str());
 
+        //Then place part in the correct position according to the negative
+
         i ++;
     }
 }
