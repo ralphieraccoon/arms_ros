@@ -3,4 +3,6 @@
 
 const extern double PARTS_BED_HEIGHT;
 
+const extern double PARTS_BAY_POSITIONS[4];
+
 #endif

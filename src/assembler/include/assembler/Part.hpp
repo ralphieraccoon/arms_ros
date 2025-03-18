@@ -19,9 +19,11 @@ public:
 
     std::shared_ptr<Polyhedron>     getMesh()       { return mesh_; }
 
+    Point                           getCentroidPosition() { return meshCenter(mesh_); }
+
     void setMesh(std::shared_ptr<Polyhedron> mesh) { mesh_ = mesh; }
 
-    void center() { centerMesh(mesh_); }
+    void setCentroidPosition(Point position) { positionMesh(mesh_, position); }
 
 protected:
 
@@ -45,14 +47,11 @@ public:
 
     bool collide(std::shared_ptr<Part> otherPart);
 
-    void createNegative(std::shared_ptr<MeshObject> substrate, std::string filename);
+    Point createNegative(std::shared_ptr<MeshObject> substrate, std::string filename);
 
     PART_TYPE                       getType()       { return type_; }
     size_t                          getId()         { return id_; }
     std::string                     getName()       { return name_; }
-
-
-    Point                           getCentroid();
 
     //Copy constructor
     Part(const Part& other) : MeshObject(other) {}

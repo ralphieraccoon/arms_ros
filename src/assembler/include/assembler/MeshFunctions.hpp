@@ -41,7 +41,9 @@ void debugMesh(std::shared_ptr<Polyhedron> poly, std::string name);
 
 void debugNefMesh(Nef_polyhedron mesh, std::string name);
 
-void centerMesh(std::shared_ptr<Polyhedron> mesh);
+void positionMesh(std::shared_ptr<Polyhedron> mesh, Point target_position);
+
+Point meshCenter(std::shared_ptr<Polyhedron> mesh);
 
 void scaleMesh(std::shared_ptr<Polyhedron> mesh);
 

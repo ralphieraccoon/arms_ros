@@ -34,22 +34,24 @@ bool Part::collide(std::shared_ptr<Part> otherPart)
 }
 
 
-void Part::createNegative(std::shared_ptr<MeshObject> substrate, std::string filename)
+Point Part::createNegative(std::shared_ptr<MeshObject> substrate, std::string filename)
 {
     std::cout << "Creating negative" << std::endl;
+
+    Point final_position(0, 0, 0);
 
     // Convert Polyhedra to Nef Polyhedra
 
     if (substrate == nullptr)
     {
         std::cout << "substrate null!" << std::endl;
-        return;
+        return final_position;
     }
 
     if (substrate->getMesh() == nullptr)
     {
         std::cout << "substrate mesh null!" << std::endl;
-        return;
+        return final_position;
     }
 
     scaleMesh(mesh_);   //TODO Need to copy before scaling in future
@@ -154,55 +156,7 @@ void Part::createNegative(std::shared_ptr<MeshObject> substrate, std::string fil
     //Reset the part back to its original position
     translate(Vector(0, 0, -distance_moved));
 
-    return;
-}
+    final_position += Vector(0, 0, distance_moved); 
 
-Point Part::getCentroid()
-{
-    //Point centroid(0, 0, 0);
-
-    //if (!mesh_->is_closed())
-    //{
-    //    std::cout << "Can't find centroid of open mesh" << std::endl;
-
-    //    return centroid;
-    //}
-
-
-
-    Vector weightedSum(0, 0, 0);
-    double totalVolume = 0.0;
-    Point origin(0, 0, 0);  // Use origin as reference for tetrahedra
-
-    // // Iterate through all faces
-    // for (auto f = mesh_->facets_begin(); f != mesh_->facets_end(); ++f) 
-    // {
-    //     // Get the three vertices of the face
-    //     auto h = f->halfedge();
-    //     Point p1 = h->vertex()->point();
-    //     Point p2 = h->next()->vertex()->point();
-    //     Point p3 = h->next()->next()->vertex()->point();
-
-    //     // Compute tetrahedron volume using determinant formula
-    //     double volume = CGAL::determinant(p1 - CGAL::ORIGIN, p2 - CGAL::ORIGIN, p3 - CGAL::ORIGIN) / 6.0;
-    //     if (volume == 0) continue;  // Skip degenerate tetrahedra
-
-    //     totalVolume += volume;
-
-    //     // Compute tetrahedron centroid
-    //     Point centroid = CGAL::centroid(origin, p1, p2, p3);
-
-    //     // Accumulate volume-weighted centroid contributions
-    //     weightedSum = weightedSum + (volume * (centroid - CGAL::ORIGIN));
-
-    // }
-
-    // return CGAL::ORIGIN + (weightedSum / totalVolume);
-
-
-    return origin;
-
-    // Final center of mass computation
-
-    //return CGAL::ORIGIN + (Point(weightedSum.x() / totalVolume, weightedSum.y() / totalVolume, weightedSum.z() / totalVolume));
+    return final_position;
 }

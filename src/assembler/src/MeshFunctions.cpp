@@ -173,13 +173,34 @@ void debugNefMesh(Nef_polyhedron mesh, std::string name)
     // }
 }
 
-void centerMesh(std::shared_ptr<Polyhedron> mesh)
+void positionMesh(std::shared_ptr<Polyhedron> mesh, Point target_position)
+{
+    Point initial_center = meshCenter(mesh);
+
+    Vector delta = target_position - initial_center;
+
+    //Substract initial center from each vertex to create new center of 0,0,0
+
+    for (auto vertex = mesh->vertices_begin(); vertex != mesh->vertices_end(); vertex++)
+    {
+        vertex->point() += delta;
+    }
+}
+
+Point meshCenter(std::shared_ptr<Polyhedron> mesh)
 {
     if (mesh == nullptr)
-        return;
+        return Point(0, 0, 0);
 
     if (mesh->size_of_vertices() == 0)
-        return;
+        return Point(0, 0, 0);
+
+    if (!mesh->is_closed())
+    {
+        std::cout << "Can't find centroid of open mesh" << std::endl;
+
+        return Point(0, 0, 0);
+    }
 
     //Iterate through each vertex, find the maximum and minimum along each axis, shift vertex positions so that the centorid lies at 0,0,0
 
@@ -212,16 +233,9 @@ void centerMesh(std::shared_ptr<Polyhedron> mesh)
 
     Vector size = max - min;
 
-    Point initial_center = min + 0.5 * size;
+    Point center = min + 0.5 * size;
 
-    Vector delta = Point(0, 0, 0) - initial_center;
-
-    //Substract initial center from each vertex to create new center of 0,0,0
-
-    for (auto vertex = mesh->vertices_begin(); vertex != mesh->vertices_end(); vertex++)
-    {
-        vertex->point() += delta;
-    }
+    return center;
 }
 
 void scaleMesh(std::shared_ptr<Polyhedron> mesh)

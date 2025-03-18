@@ -5,6 +5,8 @@
 
 #include "assembler/Part.hpp"
 
+#include "assembler/ARMSConfig.hpp"
+
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
@@ -180,7 +182,7 @@ std::vector<std::shared_ptr<AssemblyNode>> Assembler::breadthFirstZAssembly()
         
         for (std::shared_ptr<Part> part : node->assembly_->getParts())
         {
-            Point centroid = part->getCentroid();
+            Point centroid = part->getCentroidPosition();
 
             std::cout << centroid.x() << " " << centroid.y() << " " << centroid.z() << std::endl;
         }
@@ -223,9 +225,9 @@ std::vector<std::shared_ptr<AssemblyNode>> Assembler::findNodeNeighbours(std::sh
                 if (otherPart->getId() == part->getId())
                     continue;
 
-                Point cd1 = part->getCentroid();
+                Point cd1 = part->getCentroidPosition();
 
-                Point cd2 = otherPart->getCentroid();
+                Point cd2 = otherPart->getCentroidPosition();
 
                 std::cout << "Checking collision: " << part->getId() << " and "  << otherPart->getId() << std::endl;
 
@@ -368,7 +370,7 @@ void Assembler::generateInitialAssembly()
 
 void Assembler::generateNegatives()
 {
-    negative_substrate_->center();
+    negative_substrate_->setCentroidPosition(Point(0, 0, 0));
 
     int i = 0;
 
@@ -382,11 +384,12 @@ void Assembler::generateNegatives()
 
         ss << "negative_" << i << "_" << part->getName() << ".stl";
 
-        part->center();
+        part->setCentroidPosition(Point(0, 0, 0));
 
-        part->createNegative(negative_substrate_, ss.str());
+        Point bay_displacement = part->createNegative(negative_substrate_, ss.str());
 
         //Then place part in the correct position according to the negative
+        //
 
         i ++;
     }
