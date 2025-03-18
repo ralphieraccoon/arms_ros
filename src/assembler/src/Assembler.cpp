@@ -388,8 +388,14 @@ void Assembler::generateNegatives()
 
         Point bay_displacement = part->createNegative(negative_substrate_, ss.str());
 
-        //Then place part in the correct position according to the negative
-        //
+        //Correct for parts bed height
+        bay_displacement += Vector(0, 0, PARTS_BED_HEIGHT);
+        
+        //Set to bay position
+        bay_displacement += Vector(PARTS_BAY_POSITIONS[i][0], PARTS_BAY_POSITIONS[i][1], 0);
+
+        //Then place part in the correct position
+        part->setCentroidPosition(bay_displacement);
 
         i ++;
     }

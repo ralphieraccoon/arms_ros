@@ -2,4 +2,4 @@
 
 const double PARTS_BED_HEIGHT = 0;
 
-const double PARTS_BAY_POSITIONS[4] = {0, 0, 0, 0};
+const double PARTS_BAY_POSITIONS[4][2] = {{0,0}, {0,0}, {0,0}, {0,0}};
