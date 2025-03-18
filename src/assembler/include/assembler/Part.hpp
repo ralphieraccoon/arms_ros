@@ -88,6 +88,9 @@ public:
         return std::make_shared<Part>(*this);  // Uses copy constructor
     }
 
+    Point meshLowestPoint(std::shared_ptr<Polyhedron> mesh);
+
+
 private:
 
     void debugMesh(std::shared_ptr<Polyhedron> mesh, std::string name = "polyhedron");
@@ -103,8 +106,6 @@ private:
     void removeOverhangs(std::shared_ptr<Polyhedron> mesh);
 
     Point facetLowestPoint(Polyhedron::Facet_handle facet);
-
-    Point meshLowestPoint(std::shared_ptr<Polyhedron> mesh);
 
     std::shared_ptr<Polyhedron> mesh_;
 

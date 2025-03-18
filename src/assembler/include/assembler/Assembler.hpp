@@ -23,11 +23,13 @@ public:
 
     void generateAssemblySequence();
 
-    void setInitialAssembly(std::shared_ptr<Assembly> initial_assembly) { initial_assembly_ = initial_assembly; }
+    void setTargetAssembly(std::shared_ptr<Assembly> target_assembly) { target_assembly_ = target_assembly; }
 
     void setSubstrate(std::shared_ptr<Substrate> substrate) { negative_substrate_ = substrate; }
 
 private:
+
+    void generateInitialAssembly();
 
     size_t nodeIdGenerator(std::vector<size_t> object_ids);
 
@@ -42,6 +44,8 @@ private:
     std::vector<std::shared_ptr<AssemblyNode>> findNodeNeighbours(std::shared_ptr<AssemblyNode> node);
 
     std::shared_ptr<Assembly> initial_assembly_;
+
+    std::shared_ptr<Assembly> target_assembly_;
 
     std::shared_ptr<Substrate> negative_substrate_;
 

@@ -33,10 +33,14 @@ Assembler::Assembler()
 
 void Assembler::generateAssemblySequence() 
 {
-    if (initial_assembly_ == nullptr)
+    if (target_assembly_ == nullptr)
         return;
 
+    generateInitialAssembly();
+
     generateNegatives();
+
+    //TODO - might need to change initial to target (assembly)
 
     std::cout << "Generating assembly" << std::endl;
 
@@ -350,6 +354,16 @@ size_t Assembler::nodeIdGenerator(std::vector<size_t> object_ids)
     node_id_map_[next_node_ID_++] = object_ids;
 
     return next_node_ID_ - 1;
+}
+
+void Assembler::generateInitialAssembly()
+{
+    initial_assembly_ = std::shared_ptr<Assembly>(new Assembly());
+
+    for (std::shared_ptr<Part> part : target_assembly_->getParts())
+    {
+        initial_assembly_->addPart(part->clone());
+    }
 }
 
 void Assembler::generateNegatives()

@@ -33,11 +33,11 @@ private:
 
     void loadMesh(std::string inputPath, std::string filename)
     {
-        std::shared_ptr<Assembly> initial_assembly = loader_->loadModel(inputPath + filename);
+        std::shared_ptr<Assembly> target_assembly = loader_->loadModel(inputPath + filename);
 
         assembler_->setSubstrate(loader_->loadSubstrate(inputPath + "Parts_bay_socket_6mm v2.step"));
 
-        assembler_->setInitialAssembly(initial_assembly);
+        assembler_->setTargetAssembly(target_assembly);
 
         assembler_->generateAssemblySequence();
     }
