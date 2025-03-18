@@ -368,7 +368,7 @@ void Assembler::generateInitialAssembly()
 
 void Assembler::generateNegatives()
 {
-    negative_substrate_->centerMesh();
+    negative_substrate_->center();
 
     int i = 0;
 
@@ -382,7 +382,7 @@ void Assembler::generateNegatives()
 
         ss << "negative_" << i << "_" << part->getName() << ".stl";
 
-        part->centerMesh();
+        part->center();
 
         part->createNegative(negative_substrate_, ss.str());
 

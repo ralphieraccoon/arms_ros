@@ -270,11 +270,11 @@ std::shared_ptr<Assembly> ModelLoader::loadModel(const std::string& filename) {
 }
 
 
-std::shared_ptr<Substrate> ModelLoader::loadSubstrate(const std::string& filename)
+std::shared_ptr<MeshObject> ModelLoader::loadSubstrate(const std::string& filename)
 {
     std::cout << "Loading substrate" << std::endl;
 
-    std::shared_ptr<Substrate> substrate = std::shared_ptr<Substrate>(new Substrate());
+    std::shared_ptr<MeshObject> substrate = std::shared_ptr<MeshObject>(new MeshObject());
 
     std::vector<std::shared_ptr<NamedPolyhedron>> named_polyhedrons = loadSTEP(filename);
 

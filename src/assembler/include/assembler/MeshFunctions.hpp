@@ -16,6 +16,8 @@
 #include <CGAL/Surface_mesh.h>
 #include <CGAL/boost/graph/IO/polygon_mesh_io.h>
 
+#include <fstream>
+
 typedef CGAL::Exact_predicates_exact_constructions_kernel Kernel;
 typedef Kernel::Point_3 Point;
 typedef CGAL::Polyhedron_3<Kernel> Polyhedron;
@@ -33,5 +35,14 @@ Point facetLowestPoint(Polyhedron::Facet_handle facet);
 
 Point meshLowestPoint(std::shared_ptr<Polyhedron> mesh);
 
+bool saveMesh(std::shared_ptr<Polyhedron> mesh, std::string filename);
+
+void debugMesh(std::shared_ptr<Polyhedron> poly, std::string name);
+
+void debugNefMesh(Nef_polyhedron mesh, std::string name);
+
+void centerMesh(std::shared_ptr<Polyhedron> mesh);
+
+void scaleMesh(std::shared_ptr<Polyhedron> mesh);
 
 #endif

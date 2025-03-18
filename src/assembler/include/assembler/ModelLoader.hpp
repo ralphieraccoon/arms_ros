@@ -40,7 +40,7 @@
 
 #include "assembler/Part.hpp"
 
-class Substrate;
+class MeshObject;
 
 class Assembly;
 
@@ -68,7 +68,7 @@ public:
     explicit ModelLoader() {}
     std::shared_ptr<Assembly> loadModel(const std::string& filename);
 
-    std::shared_ptr<Substrate> loadSubstrate(const std::string& filename);
+    std::shared_ptr<MeshObject> loadSubstrate(const std::string& filename);
 
     std::vector<std::shared_ptr<NamedPolyhedron>> loadSTEP(const std::string& filename);
 
