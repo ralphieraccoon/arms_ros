@@ -42,6 +42,10 @@ void Assembler::generateAssemblySequence()
 
     generateNegatives();
 
+    //At this point we have the target assembly, with the components in the positions(relative to one another) that
+    //they will be in the finished design, and the initial assembly, with the external parts in their parts bay positions,
+    //the screws placed nowhere, and the internal parts needed fetching from Prusa
+
     //TODO - might need to change initial to target (assembly)
 
     std::cout << "Generating assembly" << std::endl;
@@ -53,6 +57,7 @@ void Assembler::generateAssemblySequence()
 
     std::vector<std::shared_ptr<Part>> initial_parts = initial_assembly_->getParts();
 
+    //TODO might get rid of locating external parts
     for (std::shared_ptr<Part> part : initial_parts)
     {        
         if (!part->getType() == Part::EXTERNAL)
@@ -106,9 +111,9 @@ std::vector<std::shared_ptr<AssemblyNode>> Assembler::breadthFirstZAssembly()
 
     std::shared_ptr<AssemblyNode> base_node = std::shared_ptr<AssemblyNode>(new AssemblyNode());
 
-    base_node->assembly_ = initial_assembly_;
+    base_node->assembly_ = target_assembly_;
 
-    base_node->id_ = nodeIdGenerator(initial_assembly_->getPartIds());
+    base_node->id_ = nodeIdGenerator(target_assembly_->getPartIds());
 
     std::queue<std::shared_ptr<AssemblyNode>> queue;
 
@@ -390,7 +395,7 @@ void Assembler::generateNegatives()
 
         //Correct for parts bed height
         bay_displacement += Vector(0, 0, PARTS_BED_HEIGHT);
-        
+
         //Set to bay position
         bay_displacement += Vector(PARTS_BAY_POSITIONS[i][0], PARTS_BAY_POSITIONS[i][1], 0);
 

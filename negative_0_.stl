@@ -83,20 +83,6 @@ solid polyhedron
       vertex -20.75 -20.75 3
     endloop
   endfacet
-  facet normal -0 0 -1722.25
-    outer loop
-      vertex -20.75 20.75 -3
-      vertex 20.75 20.75 -3
-      vertex -20.75 -20.75 -3
-    endloop
-  endfacet
-  facet normal -0 0 -1722.25
-    outer loop
-      vertex -20.75 -20.75 -3
-      vertex 20.75 20.75 -3
-      vertex 20.75 -20.75 -3
-    endloop
-  endfacet
   facet normal -0 -249 0
     outer loop
       vertex -20.75 -20.75 -3
@@ -109,6 +95,20 @@ solid polyhedron
       vertex -20.75 -20.75 3
       vertex -20.75 -20.75 -3
       vertex 20.75 -20.75 3
+    endloop
+  endfacet
+  facet normal -0 0 -1722.25
+    outer loop
+      vertex -20.75 20.75 -3
+      vertex 20.75 20.75 -3
+      vertex -20.75 -20.75 -3
+    endloop
+  endfacet
+  facet normal -0 0 -1722.25
+    outer loop
+      vertex -20.75 -20.75 -3
+      vertex 20.75 20.75 -3
+      vertex 20.75 -20.75 -3
     endloop
   endfacet
   facet normal 249 0 0
