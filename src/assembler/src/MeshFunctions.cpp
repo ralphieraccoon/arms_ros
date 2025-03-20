@@ -24,25 +24,15 @@ Point facetLowestPoint(Polyhedron::Facet_handle facet)
     return lowest_point;
 }
 
-Point meshLowestPoint(std::shared_ptr<Polyhedron> mesh)
+double meshLowestPoint(std::shared_ptr<Polyhedron> mesh)
 {
     if (mesh->size_of_facets() == 0)
     {
         std::cout << "Mesh has no facets" << std::endl;
-        return Point(0, 0, 0);
+        return 0;
     }
 
-    Point lowest_point = mesh->facets_begin()->halfedge()->vertex()->point();
-
-    for (auto facet = mesh->facets_begin(); facet != mesh->facets_end(); facet++)
-    {
-        auto point = facetLowestPoint(facet);
-
-        if (point.z() < lowest_point.z())
-            lowest_point = point;
-    }
-
-    return lowest_point;
+    return meshBoundingBox(mesh).zmin();
 }
 
 bool saveMesh(std::shared_ptr<Polyhedron> mesh, std::string filename)
@@ -202,40 +192,48 @@ Point meshCenter(std::shared_ptr<Polyhedron> mesh)
         return Point(0, 0, 0);
     }
 
+    BoundingBox bbox = meshBoundingBox(mesh);
+
+    double cx = (bbox.xmin() + bbox.xmax()) / 2.0;
+    double cy = (bbox.ymin() + bbox.ymax()) / 2.0;
+    double cz = (bbox.zmin() + bbox.zmax()) / 2.0;
+
+    return Point(cx, cy, cz);
+
     //Iterate through each vertex, find the maximum and minimum along each axis, shift vertex positions so that the centorid lies at 0,0,0
 
-    Point max = mesh->vertices_begin()->point();
+    // Point max = mesh->vertices_begin()->point();
 
-    Point min = mesh->vertices_begin()->point();
+    // Point min = mesh->vertices_begin()->point();
 
-    for (auto vertex = mesh->vertices_begin(); vertex != mesh->vertices_end(); vertex++)
-    {
-        Point point = vertex->point();
+    // for (auto vertex = mesh->vertices_begin(); vertex != mesh->vertices_end(); vertex++)
+    // {
+    //     Point point = vertex->point();
 
-        if (point.x() > max.x())
-            max = Point(point.x(), max.y(), max.z());
+    //     if (point.x() > max.x())
+    //         max = Point(point.x(), max.y(), max.z());
 
-        if (point.y() > max.y())
-            max = Point(max.x(), point.y(), max.z());
+    //     if (point.y() > max.y())
+    //         max = Point(max.x(), point.y(), max.z());
 
-        if (point.z() > max.z())
-            max = Point(max.x(), max.y(), point.z());
+    //     if (point.z() > max.z())
+    //         max = Point(max.x(), max.y(), point.z());
 
-        if (point.x() < min.x())
-            min = Point(point.x(), min.y(), min.z());
+    //     if (point.x() < min.x())
+    //         min = Point(point.x(), min.y(), min.z());
 
-        if (point.y() < min.y())
-            min = Point(min.x(), point.y(), min.z());
+    //     if (point.y() < min.y())
+    //         min = Point(min.x(), point.y(), min.z());
 
-        if (point.z() < min.z())
-            min = Point(min.x(), min.y(), point.z());
-    }
+    //     if (point.z() < min.z())
+    //         min = Point(min.x(), min.y(), point.z());
+    // }
 
-    Vector size = max - min;
+    // Vector size = max - min;
 
-    Point center = min + 0.5 * size;
+    // Point center = min + 0.5 * size;
 
-    return center;
+    // return center;
 }
 
 void scaleMesh(std::shared_ptr<Polyhedron> mesh)
@@ -245,4 +243,29 @@ void scaleMesh(std::shared_ptr<Polyhedron> mesh)
     for (auto v = mesh->points_begin(); v != mesh->points_end(); ++v) {
         *v = scaleTransform(*v);  // Apply transformation
     }
+}
+
+BoundingBox meshBoundingBox(std::shared_ptr<Polyhedron> mesh)
+{
+    if (mesh->size_of_vertices() == 0)
+        return CGAL::Bbox_3(0, 0, 0, 0, 0, 0);  // Return empty bbox if mesh is empty
+
+    double xmin = std::numeric_limits<double>::max();
+    double ymin = std::numeric_limits<double>::max();
+    double zmin = std::numeric_limits<double>::max();
+    double xmax = std::numeric_limits<double>::lowest();
+    double ymax = std::numeric_limits<double>::lowest();
+    double zmax = std::numeric_limits<double>::lowest();
+
+    for (auto v = mesh->vertices_begin(); v != mesh->vertices_end(); ++v) {
+        const Point& p = v->point();
+        xmin = std::min(xmin, CGAL::to_double(p.x()));
+        ymin = std::min(ymin, CGAL::to_double(p.y()));
+        zmin = std::min(zmin, CGAL::to_double(p.z()));
+        xmax = std::max(xmax, CGAL::to_double(p.x()));
+        ymax = std::max(ymax, CGAL::to_double(p.y()));
+        zmax = std::max(zmax, CGAL::to_double(p.z()));
+    }
+
+    return CGAL::Bbox_3(xmin, ymin, zmin, xmax, ymax, zmax);
 }

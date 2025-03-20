@@ -1,8 +1,7 @@
 #ifndef ASSEMBLY_HPP
 #define ASSEMBLY_HPP
 
-//#include <CGAL/Simple_cartesian.h>
-//#include <CGAL/Surface_mesh.h>
+#include "assembler/MeshFunctions.hpp"
 
 #include <memory>
 #include <vector>
@@ -22,6 +21,8 @@ public:
     std::vector<size_t> getPartIds();
 
     int getNumInternalParts();
+
+    void placeOnPoint(Point point);
 
 private:
     std::vector<std::shared_ptr<Part>> parts_;

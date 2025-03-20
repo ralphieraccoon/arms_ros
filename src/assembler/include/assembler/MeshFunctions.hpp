@@ -3,6 +3,8 @@
 
 #include <CGAL/Exact_predicates_exact_constructions_kernel.h>
 #include <CGAL/Polyhedron_3.h>
+#include <CGAL/Bbox_3.h>
+#include <CGAL/Polyhedral_mesh_domain_3.h>
 #include <CGAL/Polyhedron_incremental_builder_3.h>
 #include <CGAL/Aff_transformation_3.h>
 #include <CGAL/AABB_tree.h>
@@ -29,11 +31,14 @@ typedef CGAL::AABB_traits<Kernel, Primitive> AABB_traits;
 typedef CGAL::AABB_tree<AABB_traits> AABB_tree;
 typedef CGAL::Nef_polyhedron_3<Kernel> Nef_polyhedron;
 typedef CGAL::Surface_mesh<Kernel::Point_3> SurfaceMesh;
+typedef CGAL::Bbox_3 BoundingBox;
 
+
+BoundingBox meshBoundingBox(std::shared_ptr<Polyhedron> mesh);
 
 Point facetLowestPoint(Polyhedron::Facet_handle facet);
 
-Point meshLowestPoint(std::shared_ptr<Polyhedron> mesh);
+double meshLowestPoint(std::shared_ptr<Polyhedron> mesh);
 
 bool saveMesh(std::shared_ptr<Polyhedron> mesh, std::string filename);
 

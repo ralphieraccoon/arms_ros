@@ -34,3 +34,12 @@ int Assembly::getNumInternalParts()
     return num_internal_parts;
 }
 
+void Assembly::placeOnPoint(Point point)
+{
+    
+
+    //Find x,y center and lowest z point
+    //Move al parts so that x,y lies on point.x and point.y, and lowest z point lies on zero (or adjust for bed heighgt)
+
+    //TODO
+}

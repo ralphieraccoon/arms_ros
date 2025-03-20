@@ -60,10 +60,10 @@ Point Part::createNegative(std::shared_ptr<MeshObject> substrate, std::string fi
 
 
     //Find the lowest point of the substrate
-    auto substrate_lowest_z = meshLowestPoint(substrate->getMesh()).z();
+    double substrate_lowest_z = meshLowestPoint(substrate->getMesh());
 
     //Find the lowest point of the part
-    auto part_lowest_z = meshLowestPoint(mesh_).z();
+    double part_lowest_z = meshLowestPoint(mesh_);
 
     //Move the part so that it's lowest point is 2mm above the lowest point of the substrate
 
