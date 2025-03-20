@@ -53,7 +53,8 @@ void Assembler::generateAssemblySequence()
     //If initial (or target) assembly has no internal parts, set target_assembly position to middle of bed
     else
     {
-        //TODO set target assembly positions at bed center
+        //set target assembly positions at bed center
+        target_assembly_->placeOnPoint(Point(PRINT_BED_CENTER[0], PRINT_BED_CENTER[1], PRINT_BED_HEIGHT));
     }
 
     //At this point we have the target assembly, with the components in the positions(relative to one another) that

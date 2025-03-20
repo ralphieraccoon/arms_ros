@@ -36,10 +36,37 @@ int Assembly::getNumInternalParts()
 
 void Assembly::placeOnPoint(Point point)
 {
-    
-
     //Find x,y center and lowest z point
+
+    double xmin = std::numeric_limits<double>::max();
+    double ymin = std::numeric_limits<double>::max();
+    double zmin = std::numeric_limits<double>::max();
+    double xmax = std::numeric_limits<double>::lowest();
+    double ymax = std::numeric_limits<double>::lowest();
+    double zmax = std::numeric_limits<double>::lowest();
+
+    for (std::shared_ptr<Part> part : parts_)
+    {
+        BoundingBox bbox = meshBoundingBox(part->getMesh());
+
+        xmin = std::min(xmin, bbox.xmin());
+        ymin = std::min(ymin, bbox.ymin());
+        zmin = std::min(zmin, bbox.zmin());
+        xmax = std::max(xmax, bbox.xmax());
+        ymax = std::max(ymax, bbox.ymax());
+        zmax = std::max(zmax, bbox.zmax());
+    }
+
+    double lowest_z = zmin;
+
+    Point center = Point((xmin + xmax) / 2.0, (ymin + ymax) / 2.0, (zmin + zmax) / 2.0);
+
     //Move al parts so that x,y lies on point.x and point.y, and lowest z point lies on zero (or adjust for bed heighgt)
 
-    //TODO
+    Vector translation = point - Point(center.x(), center.y(), lowest_z);
+
+    for (std::shared_ptr<Part> part : parts_)
+    {
+        part->translate(translation);
+    }
 }
