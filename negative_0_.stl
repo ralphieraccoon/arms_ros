@@ -83,20 +83,6 @@ solid polyhedron
       vertex -20.75 -20.75 3
     endloop
   endfacet
-  facet normal -0 -249 0
-    outer loop
-      vertex -20.75 -20.75 -3
-      vertex 20.75 -20.75 -3
-      vertex 20.75 -20.75 3
-    endloop
-  endfacet
-  facet normal -0 -249 0
-    outer loop
-      vertex -20.75 -20.75 3
-      vertex -20.75 -20.75 -3
-      vertex 20.75 -20.75 3
-    endloop
-  endfacet
   facet normal -0 0 -1722.25
     outer loop
       vertex -20.75 20.75 -3
@@ -109,6 +95,20 @@ solid polyhedron
       vertex -20.75 -20.75 -3
       vertex 20.75 20.75 -3
       vertex 20.75 -20.75 -3
+    endloop
+  endfacet
+  facet normal -0 -249 0
+    outer loop
+      vertex -20.75 -20.75 -3
+      vertex 20.75 -20.75 -3
+      vertex 20.75 -20.75 3
+    endloop
+  endfacet
+  facet normal -0 -249 0
+    outer loop
+      vertex -20.75 -20.75 3
+      vertex -20.75 -20.75 -3
+      vertex 20.75 -20.75 3
     endloop
   endfacet
   facet normal 249 0 0
@@ -125,74 +125,74 @@ solid polyhedron
       vertex 20.75 20.75 3
     endloop
   endfacet
-  facet normal 67.032 0 0
+  facet normal 63.84 0 0
     outer loop
-      vertex -9.45 -15.96 0.9
-      vertex -9.45 15.96 0.9
+      vertex -9.45 -15.96 1
+      vertex -9.45 15.96 1
       vertex -9.45 15.96 3
     endloop
   endfacet
-  facet normal 67.032 0 0
+  facet normal 63.84 0 0
     outer loop
       vertex -9.45 -15.96 3
-      vertex -9.45 -15.96 0.9
+      vertex -9.45 -15.96 1
       vertex -9.45 15.96 3
     endloop
   endfacet
-  facet normal 0 39.69 0
+  facet normal 0 37.8 0
     outer loop
       vertex -9.45 -15.96 3
       vertex 9.45 -15.96 3
-      vertex -9.45 -15.96 0.9
+      vertex -9.45 -15.96 1
     endloop
   endfacet
-  facet normal 0 39.69 0
+  facet normal 0 37.8 0
     outer loop
-      vertex -9.45 -15.96 0.9
+      vertex -9.45 -15.96 1
       vertex 9.45 -15.96 3
-      vertex 9.45 -15.96 0.9
+      vertex 9.45 -15.96 1
     endloop
   endfacet
-  facet normal -67.032 0 0
+  facet normal -63.84 0 0
     outer loop
       vertex 9.45 -15.96 3
       vertex 9.45 15.96 3
-      vertex 9.45 -15.96 0.9
+      vertex 9.45 -15.96 1
     endloop
   endfacet
-  facet normal -67.032 0 0
+  facet normal -63.84 0 0
     outer loop
-      vertex 9.45 -15.96 0.9
+      vertex 9.45 -15.96 1
       vertex 9.45 15.96 3
-      vertex 9.45 15.96 0.9
+      vertex 9.45 15.96 1
     endloop
   endfacet
-  facet normal 0 -39.69 0
+  facet normal 0 -37.8 0
     outer loop
-      vertex -9.45 15.96 0.9
-      vertex 9.45 15.96 0.9
+      vertex -9.45 15.96 1
+      vertex 9.45 15.96 1
       vertex 9.45 15.96 3
     endloop
   endfacet
-  facet normal 0 -39.69 0
+  facet normal 0 -37.8 0
     outer loop
       vertex -9.45 15.96 3
-      vertex -9.45 15.96 0.9
+      vertex -9.45 15.96 1
       vertex 9.45 15.96 3
     endloop
   endfacet
   facet normal 0 0 603.288
     outer loop
-      vertex -9.45 -15.96 0.9
-      vertex 9.45 -15.96 0.9
-      vertex 9.45 15.96 0.9
+      vertex -9.45 -15.96 1
+      vertex 9.45 -15.96 1
+      vertex 9.45 15.96 1
     endloop
   endfacet
-  facet normal 0 0 603.288
+  facet normal -0 -0 603.288
     outer loop
-      vertex -9.45 15.96 0.9
-      vertex -9.45 -15.96 0.9
-      vertex 9.45 15.96 0.9
+      vertex -9.45 15.96 1
+      vertex -9.45 -15.96 1
+      vertex 9.45 15.96 1
     endloop
   endfacet
 endsolid polyhedron

@@ -21,6 +21,10 @@ public:
 
     Point                           getCentroidPosition() { return meshCenter(mesh_); }
 
+    Point getMinBounds();
+
+    Point getMaxBounds();
+
     void setMesh(std::shared_ptr<Polyhedron> mesh) { mesh_ = mesh; }
 
     void setCentroidPosition(Point position) { positionMesh(mesh_, position); }
@@ -42,6 +46,8 @@ public:
     };
 
     Part(std::shared_ptr<Polyhedron> mesh, PART_TYPE type, size_t id, std::string name) : MeshObject(mesh), type_(type), id_(id), name_(name) {}
+
+    Part() {}
 
     void translate(Vector translation);
 

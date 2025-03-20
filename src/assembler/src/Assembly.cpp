@@ -21,6 +21,19 @@ std::vector<size_t> Assembly::getPartIds()
     return part_ids;
 }
 
+std::shared_ptr<Part> Assembly::getPartById(size_t id)
+{
+    for (std::shared_ptr<Part> part : parts_)
+    {
+        if (part->getId() == id)
+            return part;
+    }
+
+    std::cerr << "No part of this ID present in assembly" << std::endl;
+
+    return std::shared_ptr<Part>(new Part());
+}
+
 int Assembly::getNumInternalParts()
 {
     int num_internal_parts = 0;

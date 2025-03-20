@@ -18,6 +18,8 @@ public:
  
     std::vector<std::shared_ptr<Part>> getParts() { return parts_; }
 
+    std::shared_ptr<Part> getPartById(size_t id);
+
     std::vector<size_t> getPartIds();
 
     int getNumInternalParts();

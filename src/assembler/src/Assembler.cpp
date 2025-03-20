@@ -57,12 +57,35 @@ void Assembler::generateAssemblySequence()
         target_assembly_->placeOnPoint(Point(PRINT_BED_CENTER[0], PRINT_BED_CENTER[1], PRINT_BED_HEIGHT));
     }
 
-    //At this point we have the target assembly, with the components in the positions(relative to one another) that
+    //At this point we have the target assembly, with the components in the correct positions on the print bed that
     //they will be in the finished design, and the initial assembly, with the external parts in their parts bay positions,
     //the screws placed nowhere, and the internal parts needed fetching from Prusa
 
     std::cout << "Generating assembly" << std::endl;
 
+    std::vector<std::shared_ptr<AssemblyNode>> path = breadthFirstZAssembly();
+
+    std::vector<size_t> ordered_part_additions;
+
+    for (std::shared_ptr<AssemblyNode> node : path)
+    {
+        for (size_t part_id : node->assembly_->getPartIds())
+        {
+            bool part_present = false;
+
+            for (size_t id : ordered_part_additions)
+            {
+                if (id == part_id)
+                    part_present = true;
+            }
+
+            if (!part_present)
+            {
+                ordered_part_additions.push_back(part_id);
+                continue;
+            }
+        }
+    }
 
     YAML::Node root;
 
@@ -86,9 +109,31 @@ void Assembler::generateAssemblySequence()
         commands.push_back(detect_part_command);
     }
 
+
+    //Iterate through each of the added parts in the path
+    for (size_t part_id : ordered_part_additions)
+    {
+        //Do nothing with the base object if it's internal  //TODO janky
+        if (part_id == path[1]->assembly_->getPartIds()[0] && path[1]->assembly_->getParts()[0]->getType() == Part::INTERNAL)
+            continue;
+
+        Point target_position = target_assembly_->getPartById(part_id)->getCentroidPosition();
+
+        YAML::Node place_part_command;
+
+        place_part_command["command-type"] = "PLACE_PART";
+        place_part_command["command-properties"]["part-name"] = ""; //TODO
+        place_part_command["command-properties"]["part-id"] = part_id;
+        place_part_command["command-properties"]["x-target-pos"] = CGAL::to_double(target_position.x());
+        place_part_command["command-properties"]["y-target-pos"] = CGAL::to_double(target_position.y());                    
+        place_part_command["command-properties"]["z-target-pos"] = CGAL::to_double(target_position.z());
+        
+        commands.push_back(place_part_command);
+    }
+
     root["commands"] = commands;
 
-    //TODO - generate commands to pnp external parts
+
 
     std::ofstream fout(Assembler::output_path_ + "assembly_plan.yaml");
 
@@ -97,23 +142,6 @@ void Assembler::generateAssemblySequence()
     fout.close();
 
 
-    std::vector<std::shared_ptr<AssemblyNode>> path = breadthFirstZAssembly();
-
-    // // Process Assimp mesh data
-    // aiMesh* mesh = scene->mMeshes[0];
-
-        
-
-    // for (unsigned int i = 0; i < mesh->mNumFaces; i++) {
-
-    //     aiFace face = mesh->mFaces[i];
-
-    //     std::cout << "Face" << std::endl;
-
-    //     for (int j = 0; j < 3; j++) {  // Triangular faces
-
-    //     }
-    // }
 }
 
 std::vector<std::shared_ptr<AssemblyNode>> Assembler::breadthFirstZAssembly()
