@@ -21,6 +21,8 @@ public:
 
     std::vector<size_t> getPartIds();
 
+    int getNumInternalParts();
+
 private:
     std::vector<std::shared_ptr<Part>> parts_;
 

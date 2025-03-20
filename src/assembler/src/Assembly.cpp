@@ -21,3 +21,16 @@ std::vector<size_t> Assembly::getPartIds()
     return part_ids;
 }
 
+int Assembly::getNumInternalParts()
+{
+    int num_internal_parts = 0;
+
+    for (std::shared_ptr<Part> part : parts_)
+    {
+        if (part->getType() == Part::INTERNAL)
+            num_internal_parts ++;
+    }
+
+    return num_internal_parts;
+}
+

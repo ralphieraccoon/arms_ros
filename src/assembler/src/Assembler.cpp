@@ -42,11 +42,23 @@ void Assembler::generateAssemblySequence()
 
     generateNegatives();
 
+    //If initial (or target) assembly has internal parts, do slicer stuff and then set target_assembly position
+    if (initial_assembly_->getNumInternalParts() == 0)
+    {
+        //TODO - get the GCODE and positions/poses of internal parts from prusa slicer
+
+        //TODO - set target assembly positions based on internal part positions
+    }
+
+    //If initial (or target) assembly has no internal parts, set target_assembly position to middle of bed
+    else
+    {
+        //TODO set target assembly positions at bed center
+    }
+
     //At this point we have the target assembly, with the components in the positions(relative to one another) that
     //they will be in the finished design, and the initial assembly, with the external parts in their parts bay positions,
     //the screws placed nowhere, and the internal parts needed fetching from Prusa
-
-    //TODO - might need to change initial to target (assembly)
 
     std::cout << "Generating assembly" << std::endl;
 
@@ -74,6 +86,8 @@ void Assembler::generateAssemblySequence()
     }
 
     root["commands"] = commands;
+
+    //TODO - generate commands to pnp external parts
 
     std::ofstream fout(Assembler::output_path_ + "assembly_plan.yaml");
 
