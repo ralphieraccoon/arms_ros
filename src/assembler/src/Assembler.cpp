@@ -67,6 +67,8 @@ void Assembler::generateAssemblySequence()
 
     std::vector<size_t> ordered_part_additions;
 
+    std::cout << std::endl << "Ordered part list: " << std::endl;
+
     for (std::shared_ptr<AssemblyNode> node : path)
     {
         for (size_t part_id : node->assembly_->getPartIds())
@@ -82,6 +84,9 @@ void Assembler::generateAssemblySequence()
             if (!part_present)
             {
                 ordered_part_additions.push_back(part_id);
+
+                std::cout << "Part: " << part_id << std::endl;
+
                 continue;
             }
         }
@@ -113,6 +118,10 @@ void Assembler::generateAssemblySequence()
     //Iterate through each of the added parts in the path
     for (size_t part_id : ordered_part_additions)
     {
+        std::cout << "Adding PLACE_PART command" << std::endl;
+
+        std::cout << "Part type: " << initial_assembly_->getPartById(part_id)->getType() << std::endl;
+
         //Do nothing with the base object if it's internal  //TODO janky
         if (part_id == path[1]->assembly_->getPartIds()[0] && path[1]->assembly_->getParts()[0]->getType() == Part::INTERNAL)
             continue;
@@ -408,11 +417,17 @@ size_t Assembler::nodeIdGenerator(std::vector<size_t> object_ids)
 
 void Assembler::generateInitialAssembly()
 {
+    std::cout << std::endl << "Generating initial assembly" << std::endl;
+
     initial_assembly_ = std::shared_ptr<Assembly>(new Assembly());
 
     for (std::shared_ptr<Part> part : target_assembly_->getParts())
     {
+        std::cout << "Target Part: " << part->getId() << std::endl;
+
         initial_assembly_->addPart(part->clone());
+
+        std::cout << "Initial Part: " << initial_assembly_->getParts().back()->getId() << std::endl;
     }
 }
 

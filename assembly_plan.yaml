@@ -1,0 +1,14 @@
+commands:
+  - command-type: LOCATE_EXTERNAL_PART
+    command-properties:
+      part-description: ""
+      part-name: ""
+      part-id: 1
+      part-height: 100
+  - command-type: PLACE_PART
+    command-properties:
+      part-name: ""
+      part-id: 1
+      x-target-pos: -3
+      y-target-pos: -11.750000055879354
+      z-target-pos: 5.0000001490116111

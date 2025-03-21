@@ -60,7 +60,7 @@ public:
     std::string                     getName()       { return name_; }
 
     //Copy constructor
-    Part(const Part& other) : MeshObject(other) {}
+    Part(const Part& other) : MeshObject(other), id_(other.id_), type_(other.type_), name_(other.name_) {}
 
     // Deep Copy Function (returns a shared_ptr to the new Part)
     std::shared_ptr<Part> clone() const {

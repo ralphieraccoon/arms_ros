@@ -199,41 +199,6 @@ Point meshCenter(std::shared_ptr<Polyhedron> mesh)
     double cz = (bbox.zmin() + bbox.zmax()) / 2.0;
 
     return Point(cx, cy, cz);
-
-    //Iterate through each vertex, find the maximum and minimum along each axis, shift vertex positions so that the centorid lies at 0,0,0
-
-    // Point max = mesh->vertices_begin()->point();
-
-    // Point min = mesh->vertices_begin()->point();
-
-    // for (auto vertex = mesh->vertices_begin(); vertex != mesh->vertices_end(); vertex++)
-    // {
-    //     Point point = vertex->point();
-
-    //     if (point.x() > max.x())
-    //         max = Point(point.x(), max.y(), max.z());
-
-    //     if (point.y() > max.y())
-    //         max = Point(max.x(), point.y(), max.z());
-
-    //     if (point.z() > max.z())
-    //         max = Point(max.x(), max.y(), point.z());
-
-    //     if (point.x() < min.x())
-    //         min = Point(point.x(), min.y(), min.z());
-
-    //     if (point.y() < min.y())
-    //         min = Point(min.x(), point.y(), min.z());
-
-    //     if (point.z() < min.z())
-    //         min = Point(min.x(), min.y(), point.z());
-    // }
-
-    // Vector size = max - min;
-
-    // Point center = min + 0.5 * size;
-
-    // return center;
 }
 
 void scaleMesh(std::shared_ptr<Polyhedron> mesh)
