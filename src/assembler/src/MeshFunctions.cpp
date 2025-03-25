@@ -201,9 +201,19 @@ Point meshCenter(std::shared_ptr<Polyhedron> mesh)
     return Point(cx, cy, cz);
 }
 
-void scaleMesh(std::shared_ptr<Polyhedron> mesh)
+void scaleMesh(std::shared_ptr<Polyhedron> mesh, double scale_factor_x, double scale_factor_y, double scale_factor_z)
 {
-    Transformation scaleTransform(CGAL::SCALING, 1.05);
+
+    Transformation scaleTransform(  Kernel::RT(scale_factor_x), Kernel::RT(0), Kernel::RT(0), Kernel::RT(0),
+                                    Kernel::RT(0), Kernel::RT(scale_factor_y), Kernel::RT(0), Kernel::RT(0),
+                                    Kernel::RT(0), Kernel::RT(0), Kernel::RT(scale_factor_z), Kernel::RT(0));
+    
+    
+    
+
+
+
+    //Transformation scaleTransform(CGAL::SCALING, Kernel::RT(scale_factor_x))
 
     for (auto v = mesh->points_begin(); v != mesh->points_end(); ++v) {
         *v = scaleTransform(*v);  // Apply transformation
@@ -234,3 +244,13 @@ BoundingBox meshBoundingBox(std::shared_ptr<Polyhedron> mesh)
 
     return CGAL::Bbox_3(xmin, ymin, zmin, xmax, ymax, zmax);
 }
+
+void translateMesh(std::shared_ptr<Polyhedron> mesh, Vector translation)
+{
+    Transformation moveTransform(CGAL::TRANSLATION, translation);
+
+    for (auto v = mesh->points_begin(); v != mesh->points_end(); ++v) {
+        *v = moveTransform(*v);  // Apply transformation
+    }
+}
+

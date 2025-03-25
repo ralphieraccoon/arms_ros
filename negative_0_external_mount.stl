@@ -1,0 +1,198 @@
+solid polyhedron
+  facet normal -0 328 -0
+    outer loop
+      vertex -20.5 20.5 4
+      vertex 20.5 20.5 4
+      vertex -20.5 20.5 -4
+    endloop
+  endfacet
+  facet normal 0 328 0
+    outer loop
+      vertex -20.5 20.5 -4
+      vertex 20.5 20.5 4
+      vertex 20.5 20.5 -4
+    endloop
+  endfacet
+  facet normal 328 0 0
+    outer loop
+      vertex 20.5 -20.5 -4
+      vertex 20.5 20.5 -4
+      vertex 20.5 20.5 4
+    endloop
+  endfacet
+  facet normal 328 -0 -0
+    outer loop
+      vertex 20.5 -20.5 4
+      vertex 20.5 -20.5 -4
+      vertex 20.5 20.5 4
+    endloop
+  endfacet
+  facet normal -0 0 451
+    outer loop
+      vertex 9.5 -15.7 4
+      vertex 20.5 -20.5 4
+      vertex 20.5 20.5 4
+    endloop
+  endfacet
+  facet normal -0 -0 345.4
+    outer loop
+      vertex 9.5 15.7 4
+      vertex 9.5 -15.7 4
+      vertex 20.5 20.5 4
+    endloop
+  endfacet
+  facet normal 0 0 196.8
+    outer loop
+      vertex -20.5 -20.5 4
+      vertex 20.5 -20.5 4
+      vertex -9.5 -15.7 4
+    endloop
+  endfacet
+  facet normal -0 0 196.8
+    outer loop
+      vertex -20.5 20.5 4
+      vertex -9.5 15.7 4
+      vertex 20.5 20.5 4
+    endloop
+  endfacet
+  facet normal -0 -0 451
+    outer loop
+      vertex -20.5 20.5 4
+      vertex -20.5 -20.5 4
+      vertex -9.5 15.7 4
+    endloop
+  endfacet
+  facet normal 0 0 91.2
+    outer loop
+      vertex -9.5 15.7 4
+      vertex 9.5 15.7 4
+      vertex 20.5 20.5 4
+    endloop
+  endfacet
+  facet normal -0 0 91.2
+    outer loop
+      vertex -9.5 -15.7 4
+      vertex 20.5 -20.5 4
+      vertex 9.5 -15.7 4
+    endloop
+  endfacet
+  facet normal -0 -0 345.4
+    outer loop
+      vertex -9.5 -15.7 4
+      vertex -9.5 15.7 4
+      vertex -20.5 -20.5 4
+    endloop
+  endfacet
+  facet normal -0 0 -1681
+    outer loop
+      vertex -20.5 20.5 -4
+      vertex 20.5 20.5 -4
+      vertex -20.5 -20.5 -4
+    endloop
+  endfacet
+  facet normal -0 0 -1681
+    outer loop
+      vertex -20.5 -20.5 -4
+      vertex 20.5 20.5 -4
+      vertex 20.5 -20.5 -4
+    endloop
+  endfacet
+  facet normal -328 -0 0
+    outer loop
+      vertex -20.5 -20.5 4
+      vertex -20.5 20.5 4
+      vertex -20.5 -20.5 -4
+    endloop
+  endfacet
+  facet normal -328 -0 0
+    outer loop
+      vertex -20.5 -20.5 -4
+      vertex -20.5 20.5 4
+      vertex -20.5 20.5 -4
+    endloop
+  endfacet
+  facet normal -0 -328 0
+    outer loop
+      vertex -20.5 -20.5 -4
+      vertex 20.5 -20.5 -4
+      vertex 20.5 -20.5 4
+    endloop
+  endfacet
+  facet normal -0 -328 0
+    outer loop
+      vertex -20.5 -20.5 4
+      vertex -20.5 -20.5 -4
+      vertex 20.5 -20.5 4
+    endloop
+  endfacet
+  facet normal 62.8 0 0
+    outer loop
+      vertex -9.5 -15.7 2
+      vertex -9.5 15.7 2
+      vertex -9.5 15.7 4
+    endloop
+  endfacet
+  facet normal 62.8 0 0
+    outer loop
+      vertex -9.5 -15.7 4
+      vertex -9.5 -15.7 2
+      vertex -9.5 15.7 4
+    endloop
+  endfacet
+  facet normal 0 38 0
+    outer loop
+      vertex -9.5 -15.7 4
+      vertex 9.5 -15.7 4
+      vertex -9.5 -15.7 2
+    endloop
+  endfacet
+  facet normal 0 38 0
+    outer loop
+      vertex -9.5 -15.7 2
+      vertex 9.5 -15.7 4
+      vertex 9.5 -15.7 2
+    endloop
+  endfacet
+  facet normal -62.8 0 0
+    outer loop
+      vertex 9.5 -15.7 4
+      vertex 9.5 15.7 4
+      vertex 9.5 -15.7 2
+    endloop
+  endfacet
+  facet normal -62.8 0 0
+    outer loop
+      vertex 9.5 -15.7 2
+      vertex 9.5 15.7 4
+      vertex 9.5 15.7 2
+    endloop
+  endfacet
+  facet normal 0 -38 0
+    outer loop
+      vertex -9.5 15.7 2
+      vertex 9.5 15.7 2
+      vertex 9.5 15.7 4
+    endloop
+  endfacet
+  facet normal 0 -38 0
+    outer loop
+      vertex -9.5 15.7 4
+      vertex -9.5 15.7 2
+      vertex 9.5 15.7 4
+    endloop
+  endfacet
+  facet normal 0 0 596.6
+    outer loop
+      vertex -9.5 -15.7 2
+      vertex 9.5 -15.7 2
+      vertex 9.5 15.7 2
+    endloop
+  endfacet
+  facet normal 0 0 596.6
+    outer loop
+      vertex -9.5 15.7 2
+      vertex -9.5 -15.7 2
+      vertex 9.5 15.7 2
+    endloop
+  endfacet
+endsolid polyhedron

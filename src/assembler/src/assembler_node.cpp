@@ -35,7 +35,7 @@ private:
     {
         std::shared_ptr<Assembly> target_assembly = loader_->loadModel(inputPath + filename);
 
-        assembler_->setSubstrate(loader_->loadSubstrate(inputPath + "Parts_bay_socket_6mm v2.step"));
+        assembler_->setSubstrate(loader_->loadSubstrate(inputPath + "Parts_bay_socket_41_6.step"));
 
         assembler_->setTargetAssembly(target_assembly);
 

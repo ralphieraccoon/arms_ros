@@ -3,12 +3,25 @@ commands:
     command-properties:
       part-description: ""
       part-name: ""
+      part-id: 0
+      part-height: 100
+  - command-type: LOCATE_EXTERNAL_PART
+    command-properties:
+      part-description: ""
+      part-name: ""
       part-id: 1
       part-height: 100
   - command-type: PLACE_PART
     command-properties:
       part-name: ""
+      part-id: 0
+      x-target-pos: 9
+      y-target-pos: 15.199999999999999
+      z-target-pos: 6.0000001490116119
+  - command-type: PLACE_PART
+    command-properties:
+      part-name: ""
       part-id: 1
-      x-target-pos: -3
-      y-target-pos: -11.750000055879354
-      z-target-pos: 5.0000001490116111
+      x-target-pos: 6
+      y-target-pos: -11.200000111758705
+      z-target-pos: -17.299999739229687

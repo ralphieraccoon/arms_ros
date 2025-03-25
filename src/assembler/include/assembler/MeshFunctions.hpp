@@ -50,6 +50,8 @@ void positionMesh(std::shared_ptr<Polyhedron> mesh, Point target_position);
 
 Point meshCenter(std::shared_ptr<Polyhedron> mesh);
 
-void scaleMesh(std::shared_ptr<Polyhedron> mesh);
+void scaleMesh(std::shared_ptr<Polyhedron> mesh, double scale_factor_x, double scale_factor_y, double scale_factor_z);
+
+void translateMesh(std::shared_ptr<Polyhedron> mesh, Vector translation);
 
 #endif

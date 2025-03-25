@@ -2,11 +2,7 @@
 
 void Part::translate(Vector translation)
 {   
-    Transformation moveTransform(CGAL::TRANSLATION, translation);
-
-    for (auto v = mesh_->points_begin(); v != mesh_->points_end(); ++v) {
-        *v = moveTransform(*v);  // Apply transformation
-    }
+    translateMesh(mesh_, translation);
 }
 
 
@@ -54,7 +50,36 @@ Point Part::createNegative(std::shared_ptr<MeshObject> substrate, std::string fi
         return final_position;
     }
 
-    scaleMesh(mesh_);   //TODO Need to copy before scaling in future
+    //Copy the mesh and operate on the copy
+    std::shared_ptr<Polyhedron> scaledMesh = std::make_shared<Polyhedron>(*mesh_);
+
+    //Determine scaling factor from desired clearance
+    double clearance = 1;
+
+    BoundingBox bbox = meshBoundingBox(scaledMesh);
+
+    auto x_size = bbox.x_span();
+
+    auto y_size = bbox.y_span();
+
+    auto z_size = bbox.z_span();
+
+    auto target_x_size = x_size + clearance;
+
+    auto target_y_size = y_size + clearance;
+    
+    auto target_z_size = z_size + clearance;
+
+    auto x_scale_ratio = target_x_size / x_size;
+
+    auto y_scale_ratio = target_y_size / y_size;
+
+    auto z_scale_ratio = target_z_size / z_size;
+
+    std::cout << "Scaling ratios: " <<  x_scale_ratio << " " << y_scale_ratio << " " << z_scale_ratio << std::endl;
+
+
+    scaleMesh(scaledMesh, x_scale_ratio, y_scale_ratio, z_scale_ratio);   
                         //TODO we need to make the object orthogonally convex first! Maybe we just do this by hand for now
                         //TODO or maybe eve just convex? That might suffice for most objects
 
@@ -63,11 +88,11 @@ Point Part::createNegative(std::shared_ptr<MeshObject> substrate, std::string fi
     double substrate_lowest_z = meshLowestPoint(substrate->getMesh());
 
     //Find the lowest point of the part
-    double part_lowest_z = meshLowestPoint(mesh_);
+    double part_lowest_z = meshLowestPoint(scaledMesh);
 
     //Move the part so that it's lowest point is 2mm above the lowest point of the substrate
 
-    translate(Vector(0, 0, substrate_lowest_z + 2 - part_lowest_z));
+    translateMesh(scaledMesh, Vector(0, 0, substrate_lowest_z + 2 - part_lowest_z));
 
     auto distance_moved = substrate_lowest_z + 2 - part_lowest_z;
 
@@ -77,6 +102,8 @@ Point Part::createNegative(std::shared_ptr<MeshObject> substrate, std::string fi
 
     while (true)
     {
+        std::cout << "Distance moved: " << distance_moved << std::endl;
+
         //Create the nefs and do the substraction
 
         SurfaceMesh mesh;
@@ -84,20 +111,10 @@ Point Part::createNegative(std::shared_ptr<MeshObject> substrate, std::string fi
 
         Nef_polyhedron nef_substrate(mesh);
 
-        //Nef_polyhedron nef_substrate(*substrate->getMesh());
-
-        std::cout << "Nef 1 created" << std::endl;
-
-        //debugNefMesh(nef_substrate, "Substrate");
-
         SurfaceMesh mesh2;
-        CGAL::copy_face_graph(*mesh_, mesh2);
+        CGAL::copy_face_graph(*scaledMesh, mesh2);
 
         Nef_polyhedron nef_part(mesh2);
-
-        //Nef_polyhedron nef_part(*mesh_);
-
-        std::cout << "Nef 2 created" << std::endl;
 
         if (!nef_substrate.is_simple()) std::cout << "Error: Nef_substrate not simple!" << std::endl;
         if (!nef_part.is_simple()) std::cout << "Error: Nef_part not simple!" << std::endl;
@@ -108,8 +125,6 @@ Point Part::createNegative(std::shared_ptr<MeshObject> substrate, std::string fi
 
         // Perform subtraction (poly1 - poly2)
         Nef_polyhedron result = nef_substrate.difference(nef_part);
-
-        std::cout << "Nefs subtracted" << std::endl;
 
         result.regularization();  // Improves numerical stability
         result.simplify();        // Removes unnecessary small faces
@@ -137,6 +152,12 @@ Point Part::createNegative(std::shared_ptr<MeshObject> substrate, std::string fi
 
         std::cout << "Num downwards faces: " << downwards_faces << std::endl;
 
+        // std::stringstream ss;
+        
+        // ss << filename << "_partial_" << distance_moved << std::endl;
+
+        // saveMesh(cradle, ss.str());
+
         //If there are no downward faces, save the mesh
         if (downwards_faces == 0)
         {
@@ -148,13 +169,10 @@ Point Part::createNegative(std::shared_ptr<MeshObject> substrate, std::string fi
             break;
         }
 
-        translate(Vector(0, 0, 0.1));
+        translateMesh(scaledMesh, Vector(0, 0, 0.1));
 
-        distance_moved += 0.1;
+        distance_moved += 1;
     }
-
-    //Reset the part back to its original position
-    translate(Vector(0, 0, -distance_moved));
 
     final_position += Vector(0, 0, distance_moved); 
 
