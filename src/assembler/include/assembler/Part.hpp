@@ -21,9 +21,7 @@ public:
 
     Point                           getCentroidPosition() { return meshCenter(mesh_); }
 
-    Point getMinBounds();
-
-    Point getMaxBounds();
+    double                          getMeshMaxZ() { return meshBoundingBox(mesh_).zmax(); }
 
     void setMesh(std::shared_ptr<Polyhedron> mesh) { mesh_ = mesh; }
 

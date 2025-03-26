@@ -43,7 +43,7 @@ void Assembler::generateAssemblySequence()
     generateNegatives();
 
     //If initial (or target) assembly has internal parts, do slicer stuff and then set target_assembly position
-    if (initial_assembly_->getNumInternalParts() == 0)
+    if (initial_assembly_->getNumInternalParts() != 0)
     {
         //TODO - get the GCODE and positions/poses of internal parts from prusa slicer
 
@@ -92,6 +92,12 @@ void Assembler::generateAssemblySequence()
         }
     }
 
+
+    //In these commands for now let's give the part-height as the height of the pnp location relative to 0,
+    //and the z location as the height of the pnp placement location relative to 0
+    //You then might need to offset by the vacuum toolhead offset at some point
+
+
     YAML::Node root;
 
     YAML::Node commands = YAML::Node(YAML::NodeType::Sequence);
@@ -109,7 +115,7 @@ void Assembler::generateAssemblySequence()
         detect_part_command["command-properties"]["part-description"] = ""; //TODO
         detect_part_command["command-properties"]["part-name"] = ""; //TODO
         detect_part_command["command-properties"]["part-id"] = part->getId();
-        detect_part_command["command-properties"]["part-height"] = 100; //TODO
+        detect_part_command["command-properties"]["part-height"] = part->getMeshMaxZ(); //This is the height from 0, accounting for the cradle etc
 
         commands.push_back(detect_part_command);
     }
@@ -135,7 +141,7 @@ void Assembler::generateAssemblySequence()
         place_part_command["command-properties"]["part-id"] = part_id;
         place_part_command["command-properties"]["x-target-pos"] = CGAL::to_double(target_position.x());
         place_part_command["command-properties"]["y-target-pos"] = CGAL::to_double(target_position.y());                    
-        place_part_command["command-properties"]["z-target-pos"] = CGAL::to_double(target_position.z());
+        place_part_command["command-properties"]["z-target-pos"] = target_assembly_->getPartById(part_id)->getMeshMaxZ();
         
         commands.push_back(place_part_command);
     }

@@ -74,7 +74,14 @@ public:
 
     std::string GetShapeName(const TDF_Label& label);
 
-    TriangleMesh ExtractMeshFromShape(const TopoDS_Shape& shape);
+    TriangleMesh ExtractMeshFromShape(const TopoDS_Shape& shape, const gp_Trsf& partTransform, int shape_index);
+
+private:
+    std::vector<double> points_;
+
+    int points_index_ = 0;
+
+    //TriangleMesh ExtractMeshFromShape(const TopoDS_Shape& shape);
 };
 
 template <class HDS>

@@ -6,7 +6,9 @@
 #include <cctype>
 #include <string>
 
-TriangleMesh ModelLoader::ExtractMeshFromShape(const TopoDS_Shape& shape) {
+
+
+TriangleMesh ModelLoader::ExtractMeshFromShape(const TopoDS_Shape& shape, const gp_Trsf& partTransform, int shape_index) {
     TriangleMesh mesh;
     std::map<gp_Pnt, int, PointComparator> vertexMap;
 
@@ -23,20 +25,56 @@ TriangleMesh ModelLoader::ExtractMeshFromShape(const TopoDS_Shape& shape) {
 
         if (!triangulation.IsNull()) {
 
-            //Map of vertex indices in face to indices in model
+
+            std::cout << "Location transformation for part: " << loc.Transformation().TranslationPart().X()
+               << ", " << loc.Transformation().TranslationPart().Y()
+             << ", " << loc.Transformation().TranslationPart().Z() << std::endl;
+
+            // **Compute final transformation: part + local face transformation**
+            gp_Trsf finalTrsf = partTransform * loc.Transformation();
+
+            // Map of vertex indices in face to indices in model
             std::map<int, int> face_to_model_map;
 
             // Convert OpenCascade vertices to CGAL points
             for (int i = 1; i <= triangulation->NbNodes(); ++i) {
-                gp_Pnt p = triangulation->Node(i).Transformed(loc.Transformation());
-                CGAL::Point_3<Kernel> cgalPoint(p.X(), p.Y(), p.Z());
+                gp_Pnt p = triangulation->Node(i).Transformed(finalTrsf);  // **Apply assembly transform**
 
-                if (vertexMap.find(p) == vertexMap.end()) {
-                    vertexMap[p] = mesh.vertices.size();
-                    mesh.vertices.push_back(cgalPoint);
-                }
+                //High level node
+                if (shape_index == 1)
+                {
+                    points_.push_back(p.X());
+                    points_.push_back(p.Y());
+                    points_.push_back(p.Z());
                 
-                face_to_model_map[i] = vertexMap[p];
+                    std::cout << "Point: " << p.X() << " " << p.Y() << " " << p.Z() << std::endl;
+
+                    CGAL::Point_3<Kernel> cgalPoint(p.X(), p.Y(), p.Z());
+
+                    if (vertexMap.find(p) == vertexMap.end()) {
+                        vertexMap[p] = mesh.vertices.size();
+                        mesh.vertices.push_back(cgalPoint);
+                    }
+
+                    face_to_model_map[i] = vertexMap[p];
+                }
+
+                //Subnodes
+                else
+                {
+                    CGAL::Point_3<Kernel> cgalPoint(points_[points_index_], points_[points_index_ + 1], points_[points_index_ + 2]);
+
+                    std::cout << "Point: " << points_[points_index_] << " " << points_[points_index_ + 1] << " " << points_[points_index_ + 2] << std::endl;
+
+                    if (vertexMap.find(p) == vertexMap.end()) {
+                        vertexMap[p] = mesh.vertices.size();
+                        mesh.vertices.push_back(cgalPoint);
+                    }
+
+                    face_to_model_map[i] = vertexMap[p];
+
+                    points_index_ += 3;
+                }
             }
 
             // Extract indexed triangle faces
@@ -46,18 +84,152 @@ TriangleMesh ModelLoader::ExtractMeshFromShape(const TopoDS_Shape& shape) {
 
                 if (isReversed)
                     tri.Get(v1, v3, v2);
-
                 else
                     tri.Get(v1, v2, v3);
-                
-                //mesh.faces.push_back({v1 - 1, v2 - 1, v3 - 1}); // Convert to 0-based indexing
-                mesh.faces.push_back({face_to_model_map[v1], face_to_model_map[v2], face_to_model_map[v3]}); // Convert to 0-based indexing
 
+                mesh.faces.push_back({face_to_model_map[v1], face_to_model_map[v2], face_to_model_map[v3]});
             }
         }
     }
     return mesh;
 }
+
+// TriangleMesh ModelLoader::ExtractMeshFromShape(const TopoDS_Shape& shape) {
+//     TriangleMesh mesh;
+//     std::map<gp_Pnt, int, PointComparator> vertexMap;
+
+//     std::cout << std::endl << "Extracting mesh" << std::endl;
+
+//     // Get the transformation of the entire shape
+//     TopLoc_Location globalLoc = shape.Location();
+//     gp_Trsf globalTrsf = globalLoc.Transformation();
+
+
+//     std::cout << "Global transformation for part: " << globalTrsf.TranslationPart().X()
+//           << ", " << globalTrsf.TranslationPart().Y()
+//           << ", " << globalTrsf.TranslationPart().Z() << std::endl;
+
+//     for (TopExp_Explorer faceExp(shape, TopAbs_FACE); faceExp.More(); faceExp.Next()) {
+//         TopoDS_Face face = TopoDS::Face(faceExp.Current());
+//         TopLoc_Location loc;
+
+//         TopAbs_Orientation faceOrientation = face.Orientation();
+//         bool isReversed = (faceOrientation == TopAbs_REVERSED);
+
+//         // Get triangulation and local transformation
+//         Handle(Poly_Triangulation) triangulation = BRep_Tool::Triangulation(face, loc);
+
+//         if (!triangulation.IsNull()) {
+
+//             std::cout << "Location transformation for part: " << loc.Transformation().TranslationPart().X()
+//           << ", " << loc.Transformation().TranslationPart().Y()
+//           << ", " << loc.Transformation().TranslationPart().Z() << std::endl;
+
+
+//             // Compute full transformation: global + local
+//             gp_Trsf finalTrsf = globalTrsf * loc.Transformation();
+
+//             // Map of vertex indices in face to indices in model
+//             std::map<int, int> face_to_model_map;
+
+//             // Convert OpenCascade vertices to CGAL points
+//             for (int i = 1; i <= triangulation->NbNodes(); ++i) {
+//                 gp_Pnt p = triangulation->Node(i).Transformed(finalTrsf);
+
+//                 std::cout << "Point: " << p.X() << " " << p.Y() << " " << p.Z() << std::endl;
+
+//                 CGAL::Point_3<Kernel> cgalPoint(p.X(), p.Y(), p.Z());
+
+//                 if (vertexMap.find(p) == vertexMap.end()) {
+//                     vertexMap[p] = mesh.vertices.size();
+//                     mesh.vertices.push_back(cgalPoint);
+//                 }
+
+//                 face_to_model_map[i] = vertexMap[p];
+//             }
+
+//             // Extract indexed triangle faces
+//             for (int i = 1; i <= triangulation->NbTriangles(); ++i) {
+//                 Poly_Triangle tri = triangulation->Triangle(i);
+//                 int v1, v2, v3;
+
+//                 if (isReversed)
+//                     tri.Get(v1, v3, v2);
+//                 else
+//                     tri.Get(v1, v2, v3);
+
+//                 mesh.faces.push_back({face_to_model_map[v1], face_to_model_map[v2], face_to_model_map[v3]});
+//             }
+//         }
+//     }
+//     return mesh;
+// }
+
+//original
+// TriangleMesh ModelLoader::ExtractMeshFromShape(const TopoDS_Shape& shape) {
+//     TriangleMesh mesh;
+//     std::map<gp_Pnt, int, PointComparator> vertexMap;
+
+//     std::cout << std::endl << "Extracting mesh" << std::endl;
+
+//     for (TopExp_Explorer faceExp(shape, TopAbs_FACE); faceExp.More(); faceExp.Next()) {
+//         TopoDS_Face face = TopoDS::Face(faceExp.Current());
+//         TopLoc_Location loc;
+
+//         TopAbs_Orientation faceOrientation = face.Orientation();
+//         bool isReversed = (faceOrientation == TopAbs_REVERSED);
+
+//         Handle(Poly_Triangulation) triangulation = BRep_Tool::Triangulation(face, loc);
+
+//         if (!triangulation.IsNull()) {
+
+//             //Map of vertex indices in face to indices in model
+//             std::map<int, int> face_to_model_map;
+
+
+//             std::cout << "Location transformation for part: " << loc.Transformation().TranslationPart().X()
+//                        << ", " << loc.Transformation().TranslationPart().Y()
+//                        << ", " << loc.Transformation().TranslationPart().Z() << std::endl;
+
+//             // Convert OpenCascade vertices to CGAL points
+//             for (int i = 1; i <= triangulation->NbNodes(); ++i) {
+//                 gp_Pnt p = triangulation->Node(i).Transformed(loc.Transformation());
+//                 gp_Pnt q = triangulation->Node(i);
+
+//                 std::cout << "Transformed Point: " << p.X() << " " << p.Y() << " " << p.Z() << std::endl;
+
+//                 std::cout << "Untransformed Point: " << q.X() << " " << q.Y() << " " << q.Z() << std::endl;
+                
+//                 //gp_Pnt p = triangulation->Node(i);
+//                 CGAL::Point_3<Kernel> cgalPoint(p.X(), p.Y(), p.Z());
+
+//                 if (vertexMap.find(p) == vertexMap.end()) {
+//                     vertexMap[p] = mesh.vertices.size();
+//                     mesh.vertices.push_back(cgalPoint);
+//                 }
+                
+//                 face_to_model_map[i] = vertexMap[p];
+//             }
+
+//             // Extract indexed triangle faces
+//             for (int i = 1; i <= triangulation->NbTriangles(); ++i) {
+//                 Poly_Triangle tri = triangulation->Triangle(i);
+//                 int v1, v2, v3;
+
+//                 if (isReversed)
+//                     tri.Get(v1, v3, v2);
+
+//                 else
+//                     tri.Get(v1, v2, v3);
+                
+//                 //mesh.faces.push_back({v1 - 1, v2 - 1, v3 - 1}); // Convert to 0-based indexing
+//                 mesh.faces.push_back({face_to_model_map[v1], face_to_model_map[v2], face_to_model_map[v3]}); // Convert to 0-based indexing
+
+//             }
+//         }
+//     }
+//     return mesh;
+// }
 
 
 
@@ -82,6 +254,11 @@ std::string ModelLoader::GetShapeName(const TDF_Label& label) {
 
 std::vector<std::shared_ptr<NamedPolyhedron>> ModelLoader::loadSTEP(const std::string& filename)
 {
+    points_.clear();
+
+    points_index_ = 0;
+
+
     std::vector<std::shared_ptr<NamedPolyhedron>> named_meshes;
 
     // Load STEP file using STEPCAFControl_Reader (handles metadata properly)
@@ -109,78 +286,69 @@ std::vector<std::shared_ptr<NamedPolyhedron>> ModelLoader::loadSTEP(const std::s
 
     std::cout << "Number of components: " << shapeLabels.Length() << std::endl;
 
-    //TODO - check part names first and find out which ones are parts (they will be tagged)
-    //int start = 1;
-
-    //if (shapeLabels.Length() > 1)
-        //start = 2;
-
     for (Standard_Integer i = 1; i <= shapeLabels.Length(); ++i) {  //TODO
+
+
         TDF_Label label = shapeLabels.Value(i);
         TopoDS_Shape shape = shapeTool->GetShape(label);
 
-        // Get name of the part
+        // // Get name of the part
         std::string shapeName = GetShapeName(label);
         std::cout << "Component " << i << ": " << shapeName << std::endl;
 
+        // Get the instance transformation **from the assembly**
+        TopLoc_Location instanceLocation = shape.Location();
+        gp_Trsf instanceTransform = instanceLocation.Transformation();
 
-        // Generate a mesh for the part
+        std::cout << "Instance transformation: "
+                << instanceTransform.TranslationPart().X() << ", "
+                << instanceTransform.TranslationPart().Y() << ", "
+                << instanceTransform.TranslationPart().Z() << std::endl;
+
         BRepMesh_IncrementalMesh(shape, 0.1);  // Mesh with a 0.1 tolerance
 
-        // Extract vertices
-        TopExp_Explorer explorer(shape, TopAbs_FACE);
-        while (explorer.More()) {
-            TopoDS_Face face = TopoDS::Face(explorer.Current());
-            explorer.Next();
+        // Extract mesh with the correct instance transform
+        TriangleMesh mesh = ExtractMeshFromShape(shape, instanceTransform, i);
 
-            TopAbs_Orientation faceOrientation = face.Orientation();
-            bool isReversed = (faceOrientation == TopAbs_REVERSED);
 
-            // Get the triangulated mesh from the face
-            TopLoc_Location loc;
-            Handle(Poly_Triangulation) triangulation = BRep_Tool::Triangulation(face, loc);
 
-            // if (!triangulation.IsNull()) {
-            //     std::cout << "  Face has " << triangulation->NbNodes() << " vertices and " << triangulation->NbTriangles() << " triangles." << std::endl;
+        // TDF_Label label = shapeLabels.Value(i);
+        // TopoDS_Shape shape = shapeTool->GetShape(label);
 
-            //     if (isReversed)
-            //         std::cout << "REVERSED" << std::endl;
+        // // Get name of the part
+        // std::string shapeName = GetShapeName(label);
+        // std::cout << "Component " << i << ": " << shapeName << std::endl;
 
-            //     for (Standard_Integer j = 1; j <= triangulation->NbNodes(); j++) {
-            //         gp_Pnt p = triangulation->Node(j);
-            //         std::cout << "    Vertex: (" << p.X() << ", " << p.Y() << ", " << p.Z() << ")" << std::endl;
-            //     }
 
-            //     for (int i = 1; i <= triangulation->NbTriangles(); ++i) {
-            //         Poly_Triangle t = triangulation->Triangle(i);
-            //         Standard_Integer v1, v2, v3;
-            //         t.Get(v1, v2, v3);
-            //         std::cout << "Triangle " << i << ": " << v1 << ", " << v2 << ", " << v3 << std::endl;
-            //     }
-            // }
-        }
+        ///////
 
-        //Set up CGAL mesh
-        TriangleMesh mesh = ExtractMeshFromShape(shape);
+        //BRepMesh_IncrementalMesh(shape, 0.1);  // Mesh with a 0.1 tolerance
+
+
+        // // **Get the transformation of this part in the assembly**
+        // TopLoc_Location partLocation = shape.Location();
+        // gp_Trsf partTransform = partLocation.Transformation();
+
+        // std::cout << "Part transformation: " 
+        //         << partTransform.TranslationPart().X() << ", "
+        //         << partTransform.TranslationPart().Y() << ", "
+        //         << partTransform.TranslationPart().Z() << std::endl;
+
+        // // Generate a mesh for the part, applying part-level transformation
+        // TriangleMesh mesh = ExtractMeshFromShape(shape, partTransform);
+
+        ////////////
+
+        // // Generate a mesh for the part
+        // BRepMesh_IncrementalMesh(shape, 0.1);  // Mesh with a 0.1 tolerance
+
+        // //Set up CGAL mesh
+        // TriangleMesh mesh = ExtractMeshFromShape(shape);
 
         //Analyse mesh
         std::cout << std::endl << "Mesh:" << std::endl;
         std::cout << "Num vertices: " << mesh.vertices.size() << std::endl;
         std::cout << "Num faces: " << mesh.faces.size() << std::endl;
-
-        // std::cout << "Vertices: " << std::endl;
-
-        // for (auto vertex : mesh.vertices)
-        // {
-        //     std::cout << vertex.x() << " " << vertex.y() << " " << vertex.z() << std::endl;
-        // }
-
-        // std::cout << "Faces: " << std::endl;
-
-        // for (auto face : mesh.faces)
-        // {
-        //     std::cout << face[0] << " " << face[1] << " " << face[2] << std::endl;
-        // }
 
 
         Polyhedron P;
@@ -188,6 +356,14 @@ std::vector<std::shared_ptr<NamedPolyhedron>> ModelLoader::loadSTEP(const std::s
         P.delegate(builder);
 
         std::shared_ptr<Polyhedron> polyhedron = std::make_shared<Polyhedron>(P);
+
+
+        std::cout << "Loaded mesh " << shapeName << " at " << meshCenter(polyhedron).x() << " " << meshCenter(polyhedron).y() << " " << meshCenter(polyhedron).z() << std::endl; 
+
+        std::cout << "X span: " << meshBoundingBox(polyhedron).xmin() << " " << meshBoundingBox(polyhedron).xmax() << std::endl;
+        std::cout << "Y span: " << meshBoundingBox(polyhedron).ymin() << " " << meshBoundingBox(polyhedron).ymax() << std::endl;
+        std::cout << "Z span: " << meshBoundingBox(polyhedron).zmin() << " " << meshBoundingBox(polyhedron).zmax() << std::endl;
+
 
         std::shared_ptr<NamedPolyhedron> named_polyhedron  = std::shared_ptr<NamedPolyhedron>(new NamedPolyhedron());
 

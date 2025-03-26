@@ -50,6 +50,8 @@ int Assembly::getNumInternalParts()
 void Assembly::placeOnPoint(Point point)
 {
     //Find x,y center and lowest z point
+    std::cout << std::endl << "Placing on point: " << point.x() << " " << point.y() << " " << point.z() << std::endl;
+
 
     double xmin = std::numeric_limits<double>::max();
     double ymin = std::numeric_limits<double>::max();
@@ -60,6 +62,9 @@ void Assembly::placeOnPoint(Point point)
 
     for (std::shared_ptr<Part> part : parts_)
     {
+        std::cout << "Part start pos: " << part->getCentroidPosition().x() << " " << part->getCentroidPosition().y() << " " << part->getCentroidPosition().z() << std::endl;
+
+
         BoundingBox bbox = meshBoundingBox(part->getMesh());
 
         xmin = std::min(xmin, bbox.xmin());
@@ -81,5 +86,8 @@ void Assembly::placeOnPoint(Point point)
     for (std::shared_ptr<Part> part : parts_)
     {
         part->translate(translation);
+
+        std::cout << "Part end pos: " << part->getCentroidPosition().x() << " " << part->getCentroidPosition().y() << " " << part->getCentroidPosition().z() << std::endl;
+
     }
 }
