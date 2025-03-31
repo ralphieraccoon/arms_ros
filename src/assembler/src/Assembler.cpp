@@ -48,11 +48,21 @@ void Assembler::generateAssemblySequence()
     if (initial_assembly_->getNumInternalParts() != 0)
     {
         //Arrange the internal parts on the bed
+        if (!arrangeInternalParts())
+        {
+            std::cerr << "Parts cannot be arranged" << std::endl;
+
+            return;
+        }
 
         //Get the slicing GCODE from prusa slicer
         generateSlicerGcode();
 
         //Set the target assembly position
+
+            //If base part is internal
+
+            //Else
     }
 
     //If initial (or target) assembly has no internal parts, set target_assembly position to middle of bed
@@ -184,6 +194,61 @@ void Assembler::generateAssemblySequence()
 
 }
 
+bool Assembler::arrangeInternalParts()
+{
+    double currentY = PRINT_BED_BOTTOM_LEFT[1];
+
+    double currentX = PRINT_BED_BOTTOM_LEFT[0];
+
+    double nextY = PRINT_BED_BOTTOM_LEFT[1];
+
+    for (std::shared_ptr<Part> part : initial_assembly_->getParts())
+    {
+        if (part->getType() != Part::INTERNAL)
+            continue;
+
+        while (true)
+        {
+            BoundingBox part_box = meshBoundingBox(part->getMesh());
+
+            Point part_position = Point(currentX + (part_box.x_span() / 2), currentY + (part_box.y_span() / 2), part_box.z_span() / 2);
+
+            double nextX = currentX + part_box.x_span() + PRINT_MIN_SPACING;
+
+            double topY = currentY + part_box.y_span() + PRINT_MIN_SPACING;
+
+            std::cout << "nextX: " << nextX << "    topyY: " << topY << std::endl;
+
+            //Check the new position is within parts bay bounds
+            if (topY > PRINT_BED_TOP_RIGHT[1])
+            {
+                //Parts can't fit, return false
+                return false;
+            }
+
+            else if (nextX > PRINT_BED_TOP_RIGHT[0])
+            {
+                //Start a new y layer, try again with this part
+                currentY = nextY;
+                currentX = PRINT_BED_BOTTOM_LEFT[0];
+
+                continue;
+            }
+
+            //Otherwise, part fits
+
+            part->setCentroidPosition(Point(currentX + (part_box.x_span() / 2), currentY + (part_box.y_span() / 2), part_box.z_span() / 2));
+
+            currentX = nextX;
+
+            nextY = std::max(topY, nextY);
+            
+            break;
+        }
+    }
+
+    return true;
+}
 
 void Assembler::generateSlicerGcode()
 {
@@ -215,7 +280,7 @@ void Assembler::generateSlicerGcode()
 
     std::stringstream command_ss;
 
-    command_ss << "prusa-slicer --export-gcode --output assembler.gcode";
+    command_ss << "prusa-slicer --export-gcode --dont-arrange --output assembler.gcode";
 
     for (std::string filename : filenames)
         command_ss << " " << filename;

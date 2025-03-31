@@ -41,6 +41,8 @@ private:
 
     void generateSlicerGcode();
 
+    bool arrangeInternalParts();
+
     std::vector<std::shared_ptr<AssemblyNode>> breadthFirstZAssembly();
 
     std::vector<std::shared_ptr<AssemblyNode>> findNodeNeighbours(std::shared_ptr<AssemblyNode> node);
