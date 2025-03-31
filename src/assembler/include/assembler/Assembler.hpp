@@ -39,6 +39,8 @@ private:
 
     void generateNegatives();
 
+    void generateSlicerGcode();
+
     std::vector<std::shared_ptr<AssemblyNode>> breadthFirstZAssembly();
 
     std::vector<std::shared_ptr<AssemblyNode>> findNodeNeighbours(std::shared_ptr<AssemblyNode> node);
@@ -51,6 +53,8 @@ private:
 
     std::string output_path_;
     std::string input_path_;
+
+    std::vector<std::string> slicer_gcode;
 
 };
 

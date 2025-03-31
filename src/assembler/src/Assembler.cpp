@@ -21,6 +21,8 @@
 #include <set>
 #include <map>
 
+#include <cstdlib>
+
 Assembler::Assembler()
 {
     //TODO
@@ -45,9 +47,12 @@ void Assembler::generateAssemblySequence()
     //If initial (or target) assembly has internal parts, do slicer stuff and then set target_assembly position
     if (initial_assembly_->getNumInternalParts() != 0)
     {
-        //TODO - get the GCODE and positions/poses of internal parts from prusa slicer
+        //Arrange the internal parts on the bed
 
-        //TODO - set target assembly positions based on internal part positions
+        //Get the slicing GCODE from prusa slicer
+        generateSlicerGcode();
+
+        //Set the target assembly position
     }
 
     //If initial (or target) assembly has no internal parts, set target_assembly position to middle of bed
@@ -105,21 +110,41 @@ void Assembler::generateAssemblySequence()
     std::vector<std::shared_ptr<Part>> initial_parts = initial_assembly_->getParts();
 
     //TODO might get rid of locating external parts
+    // for (std::shared_ptr<Part> part : initial_parts)
+    // {        
+    //     if (!part->getType() == Part::EXTERNAL)
+    //         continue;
+
+    //     YAML::Node detect_part_command;
+    //     detect_part_command["command-type"] = "LOCATE_EXTERNAL_PART";
+    //     detect_part_command["command-properties"]["part-description"] = ""; //TODO
+    //     detect_part_command["command-properties"]["part-name"] = ""; //TODO
+    //     detect_part_command["command-properties"]["part-id"] = part->getId();
+    //     detect_part_command["command-properties"]["part-height"] = part->getMeshMaxZ(); //This is the height from 0, accounting for the cradle etc
+
+    //     commands.push_back(detect_part_command);
+    // }
+
+
     for (std::shared_ptr<Part> part : initial_parts)
     {        
         if (!part->getType() == Part::EXTERNAL)
             continue;
 
+        Point target_position = target_assembly_->getPartById(part->getId())->getCentroidPosition();
+
         YAML::Node detect_part_command;
-        detect_part_command["command-type"] = "LOCATE_EXTERNAL_PART";
-        detect_part_command["command-properties"]["part-description"] = ""; //TODO
-        detect_part_command["command-properties"]["part-name"] = ""; //TODO
+        detect_part_command["command-type"] = "DESIGNATE_EXTERNAL_PART";
         detect_part_command["command-properties"]["part-id"] = part->getId();
-        detect_part_command["command-properties"]["part-height"] = part->getMeshMaxZ(); //This is the height from 0, accounting for the cradle etc
+        detect_part_command["command-properties"]["part-pick-height"] = part->getMeshMaxZ(); //This is the height from 0, accounting for the cradle etc
+        detect_part_command["command-properties"]["part-place-height"] = target_assembly_->getPartById(part->getId())->getMeshMaxZ(); //This is the height from 0, accounting for the cradle etc
+        detect_part_command["command-properties"]["part-pick-pos-x"] = 0;   //TODO
+        detect_part_command["command-properties"]["part-pick-pos-y"] = 0;   //TODO
+        detect_part_command["command-properties"]["part-place-pos-x"] = CGAL::to_double(target_position.x());
+        detect_part_command["command-properties"]["part-place-pos-y"] = CGAL::to_double(target_position.y());
 
         commands.push_back(detect_part_command);
     }
-
 
     //Iterate through each of the added parts in the path
     for (size_t part_id : ordered_part_additions)
@@ -132,16 +157,16 @@ void Assembler::generateAssemblySequence()
         if (part_id == path[1]->assembly_->getPartIds()[0] && path[1]->assembly_->getParts()[0]->getType() == Part::INTERNAL)
             continue;
 
-        Point target_position = target_assembly_->getPartById(part_id)->getCentroidPosition();
+        //Point target_position = target_assembly_->getPartById(part_id)->getCentroidPosition();
 
         YAML::Node place_part_command;
 
         place_part_command["command-type"] = "PLACE_PART";
-        place_part_command["command-properties"]["part-name"] = ""; //TODO
+        //place_part_command["command-properties"]["part-name"] = ""; //TODO
         place_part_command["command-properties"]["part-id"] = part_id;
-        place_part_command["command-properties"]["x-target-pos"] = CGAL::to_double(target_position.x());
-        place_part_command["command-properties"]["y-target-pos"] = CGAL::to_double(target_position.y());                    
-        place_part_command["command-properties"]["z-target-pos"] = target_assembly_->getPartById(part_id)->getMeshMaxZ();
+        //place_part_command["command-properties"]["x-target-pos"] = CGAL::to_double(target_position.x());
+        //place_part_command["command-properties"]["y-target-pos"] = CGAL::to_double(target_position.y());                    
+        //place_part_command["command-properties"]["z-target-pos"] = target_assembly_->getPartById(part_id)->getMeshMaxZ();
         
         commands.push_back(place_part_command);
     }
@@ -158,6 +183,66 @@ void Assembler::generateAssemblySequence()
 
 
 }
+
+
+void Assembler::generateSlicerGcode()
+{
+    //Find internal parts
+    //They will already be in the correct position from previously arranging them
+    //Save each as its own stl file
+
+    int i = 0;
+
+    std::vector<std::string> filenames;
+
+    for (std::shared_ptr<Part> part : initial_assembly_->getParts())
+    {
+        if (part->getType() != Part::INTERNAL)
+            continue;
+
+        std::stringstream ss;
+
+        ss << "internal_part_" << i << ".stl";
+
+        saveMesh(part->getMesh(), ss.str());
+
+        filenames.push_back(ss.str());
+
+        i ++;        
+    }
+
+    //Call Prusa Slicer with the stl files and the correct settings (don't allow rearranging)
+
+    std::stringstream command_ss;
+
+    command_ss << "prusa-slicer --export-gcode --output assembler.gcode";
+
+    for (std::string filename : filenames)
+        command_ss << " " << filename;
+
+    int ret = std::system(command_ss.str().c_str());
+
+    if (ret == 0) {
+        std::cout << "Slicing completed successfully!" << std::endl;
+    } else {
+        std::cerr << "Error: PrusaSlicer execution failed!" << std::endl;
+    }
+
+    //Load the GCode that Prusa writes
+    std::ifstream gcodeFile("assembler.gcode");
+    if (!gcodeFile) {
+        std::cerr << "Error: Cannot open G-code file." << std::endl;
+        return;
+    }
+
+    std::string line;
+    while (std::getline(gcodeFile, line)) {
+        std::cout << line << std::endl;
+        // Process G-code commands here
+        slicer_gcode.push_back(line);
+    }
+}
+
 
 std::vector<std::shared_ptr<AssemblyNode>> Assembler::breadthFirstZAssembly()
 {

@@ -54,7 +54,7 @@ Point Part::createNegative(std::shared_ptr<MeshObject> substrate, std::string fi
     std::shared_ptr<Polyhedron> scaledMesh = std::make_shared<Polyhedron>(*mesh_);
 
     //Determine scaling factor from desired clearance
-    double clearance = 0.5;
+    double clearance = 1;
 
     BoundingBox bbox = meshBoundingBox(scaledMesh);
 

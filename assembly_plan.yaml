@@ -1,27 +1,10 @@
 commands:
-  - command-type: LOCATE_EXTERNAL_PART
+  - command-type: DESIGNATE_EXTERNAL_PART
     command-properties:
-      part-description: ""
-      part-name: ""
-      part-id: 0
-      part-height: 14.349999999999985
-  - command-type: LOCATE_EXTERNAL_PART
-    command-properties:
-      part-description: ""
-      part-name: ""
       part-id: 1
-      part-height: 9.0499999999999972
-  - command-type: PLACE_PART
-    command-properties:
-      part-name: ""
-      part-id: 0
-      x-target-pos: 0
-      y-target-pos: -3.4999999999999964
-      z-target-pos: 12
-  - command-type: PLACE_PART
-    command-properties:
-      part-name: ""
-      part-id: 1
-      x-target-pos: 0
-      y-target-pos: 0.60000000000000142
-      z-target-pos: 12.000000149011607
+      part-pick-height: 9.0999999999999979
+      part-place-height: 11.999999999999995
+      part-pick-pos-x: 0
+      part-pick-pos-y: 0
+      part-place-pos-x: 9
+      part-place-pos-y: 19.299999999999976

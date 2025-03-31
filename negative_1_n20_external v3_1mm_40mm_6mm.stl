@@ -314,6 +314,20 @@ solid polyhedron
       vertex 20 20 4
     endloop
   endfacet
+  facet normal 49.9425 0 0
+    outer loop
+      vertex -6.5 -0.924862 -1.4
+      vertex -6.5 8.32376 -1.4
+      vertex -6.5 8.32376 4
+    endloop
+  endfacet
+  facet normal 49.9425 0 0
+    outer loop
+      vertex -6.5 -0.924862 4
+      vertex -6.5 -0.924862 -1.4
+      vertex -6.5 8.32376 4
+    endloop
+  endfacet
   facet normal 0 0.0536719 0
     outer loop
       vertex -6.5 -0.924862 4
@@ -354,20 +368,6 @@ solid polyhedron
       vertex -4.53346 -0.924862 -0.592451
       vertex -3.52041 -0.924862 -1.4
       vertex -6.5 -0.924862 -1.4
-    endloop
-  endfacet
-  facet normal 49.9425 0 0
-    outer loop
-      vertex -6.5 -0.924862 -1.4
-      vertex -6.5 8.32376 -1.4
-      vertex -6.5 8.32376 4
-    endloop
-  endfacet
-  facet normal 49.9425 0 0
-    outer loop
-      vertex -6.5 -0.924862 4
-      vertex -6.5 -0.924862 -1.4
-      vertex -6.5 8.32376 4
     endloop
   endfacet
   facet normal 17.7559 -0.0360997 1.7648
@@ -1378,17 +1378,17 @@ solid polyhedron
       vertex -0.261163 9.04309 1.91604
     endloop
   endfacet
-  facet normal 0 1.02062e-15 0.375728
-    outer loop
-      vertex -0.261163 9.04309 1.91604
-      vertex 0.261163 8.32376 1.91604
-      vertex 0.261163 9.04309 1.91604
-    endloop
-  endfacet
   facet normal -0.091301 2.70072e-15 0.36481
     outer loop
       vertex 0.261163 8.32376 1.91604
       vertex 0.768311 8.32376 2.04296
+      vertex 0.261163 9.04309 1.91604
+    endloop
+  endfacet
+  facet normal 0 1.02062e-15 0.375728
+    outer loop
+      vertex -0.261163 9.04309 1.91604
+      vertex 0.261163 8.32376 1.91604
       vertex 0.261163 9.04309 1.91604
     endloop
   endfacet
@@ -1588,13 +1588,6 @@ solid polyhedron
       vertex 1.21633 18.6 3.00585
     endloop
   endfacet
-  facet normal -3.55443 0 1.32759
-    outer loop
-      vertex 1.43887 9.04309 3.33321
-      vertex 1.57778 9.04309 3.70513
-      vertex 1.57778 18.6 3.70513
-    endloop
-  endfacet
   facet normal -3.12854 6.29966e-16 2.12676
     outer loop
       vertex 1.21633 18.6 3.00585
@@ -1607,6 +1600,13 @@ solid polyhedron
       vertex 1.43887 9.04309 3.33321
       vertex 1.57778 18.6 3.70513
       vertex 1.43887 18.6 3.33321
+    endloop
+  endfacet
+  facet normal -3.55443 0 1.32759
+    outer loop
+      vertex 1.43887 9.04309 3.33321
+      vertex 1.57778 9.04309 3.70513
+      vertex 1.57778 18.6 3.70513
     endloop
   endfacet
   facet normal 0 19.3622 -1.28525e-14
