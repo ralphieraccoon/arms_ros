@@ -47,6 +47,24 @@ int Assembly::getNumInternalParts()
     return num_internal_parts;
 }
 
+void Assembly::alignToPart(std::shared_ptr<Part> part)
+{
+    std::shared_ptr<Part> thisPart = getPartById(part->getId());
+
+    if (thisPart == nullptr)
+    {
+        std::cerr << "Corresponding part can't be found in assembly" << std::endl;
+        return;
+    }
+
+    Vector delta = part->getCentroidPosition() - thisPart->getCentroidPosition();
+
+    for (std::shared_ptr<Part> part_ : parts_)
+    {
+        part_->translate(delta);
+    }
+}
+
 void Assembly::placeOnPoint(Point point)
 {
     //Find x,y center and lowest z point

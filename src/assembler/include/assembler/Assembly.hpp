@@ -26,6 +26,9 @@ public:
 
     void placeOnPoint(Point point);
 
+    void alignToPart(std::shared_ptr<Part> part);
+
+
 private:
     std::vector<std::shared_ptr<Part>> parts_;
 

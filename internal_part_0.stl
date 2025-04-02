@@ -1,422 +1,86 @@
 solid polyhedron
-  facet normal 15 -0 -0
+  facet normal -0 75 -0
     outer loop
-      vertex 55 80.4 2
-      vertex 55 77.4 7
-      vertex 55 77.4 2
+      vertex 50 65 5
+      vertex 65 65 -0
+      vertex 50 65 -0
     endloop
   endfacet
-  facet normal 15 0 -0
+  facet normal -0 75 0
     outer loop
-      vertex 55 80.4 2
-      vertex 55 80.4 7
-      vertex 55 77.4 7
+      vertex 50 65 5
+      vertex 65 65 5
+      vertex 65 65 -0
     endloop
   endfacet
-  facet normal -15 -0 0
+  facet normal 75 -0 -0
     outer loop
-      vertex 63 77.4 2
-      vertex 63 80.4 7
-      vertex 63 80.4 2
+      vertex 65 65 5
+      vertex 65 50 -0
+      vertex 65 65 -0
     endloop
   endfacet
-  facet normal -15 0 -0
+  facet normal 75 -0 -0
     outer loop
-      vertex 63 77.4 2
-      vertex 63 77.4 7
-      vertex 63 80.4 7
+      vertex 65 65 5
+      vertex 65 50 5
+      vertex 65 50 -0
     endloop
   endfacet
-  facet normal 0 -10 0
+  facet normal -0 -75 -0
     outer loop
-      vertex 65 77.4 7
-      vertex 63 77.4 7
-      vertex 63 77.4 2
+      vertex 65 50 5
+      vertex 50 50 -0
+      vertex 65 50 -0
     endloop
   endfacet
-  facet normal 0 -10 0
+  facet normal -0 -75 -0
     outer loop
-      vertex 65 77.4 7
-      vertex 63 77.4 2
-      vertex 65 77.4 2
+      vertex 65 50 5
+      vertex 50 50 5
+      vertex 50 50 -0
     endloop
   endfacet
-  facet normal 0 -10 0
+  facet normal -75 -0 0
     outer loop
-      vertex 55 77.4 7
-      vertex 53 77.4 7
-      vertex 53 77.4 2
+      vertex 50 50 5
+      vertex 50 65 -0
+      vertex 50 50 -0
     endloop
   endfacet
-  facet normal 0 -10 0
+  facet normal -75 -0 0
     outer loop
-      vertex 55 77.4 7
-      vertex 53 77.4 2
-      vertex 55 77.4 2
+      vertex 50 50 5
+      vertex 50 65 5
+      vertex 50 65 -0
     endloop
   endfacet
-  facet normal -0 -0 6
+  facet normal -0 -0 225
     outer loop
-      vertex 65 53 7
-      vertex 63 53 7
-      vertex 63 50 7
+      vertex 65 65 5
+      vertex 50 65 5
+      vertex 50 50 5
     endloop
   endfacet
-  facet normal -0 -0 15
+  facet normal -0 -0 225
     outer loop
-      vertex 65 53 7
-      vertex 63 50 7
-      vertex 68 50 7
+      vertex 65 65 5
+      vertex 50 50 5
+      vertex 65 50 5
     endloop
   endfacet
-  facet normal -0 -0 6
+  facet normal -0 -0 -225
     outer loop
-      vertex 63 80.4 7
-      vertex 63 77.4 7
-      vertex 65 77.4 7
+      vertex 65 65 -0
+      vertex 65 50 -0
+      vertex 50 50 -0
     endloop
   endfacet
-  facet normal -0 -0 73.2
+  facet normal -0 -0 -225
     outer loop
-      vertex 68 80.4 7
-      vertex 65 77.4 7
-      vertex 65 53 7
-    endloop
-  endfacet
-  facet normal -0 -0 91.2
-    outer loop
-      vertex 68 80.4 7
-      vertex 65 53 7
-      vertex 68 50 7
-    endloop
-  endfacet
-  facet normal -0 -0 15
-    outer loop
-      vertex 68 80.4 7
-      vertex 63 80.4 7
-      vertex 65 77.4 7
-    endloop
-  endfacet
-  facet normal -0 -0 15
-    outer loop
-      vertex 53 53 7
-      vertex 50 50 7
-      vertex 55 50 7
-    endloop
-  endfacet
-  facet normal -0 -0 6
-    outer loop
-      vertex 55 53 7
-      vertex 53 53 7
-      vertex 55 50 7
-    endloop
-  endfacet
-  facet normal -0 0 73.2
-    outer loop
-      vertex 50 80.4 7
-      vertex 53 53 7
-      vertex 53 77.4 7
-    endloop
-  endfacet
-  facet normal -0 -0 91.2
-    outer loop
-      vertex 50 80.4 7
-      vertex 50 50 7
-      vertex 53 53 7
-    endloop
-  endfacet
-  facet normal -0 -0 6
-    outer loop
-      vertex 55 80.4 7
-      vertex 53 77.4 7
-      vertex 55 77.4 7
-    endloop
-  endfacet
-  facet normal -0 -0 15
-    outer loop
-      vertex 55 80.4 7
-      vertex 50 80.4 7
-      vertex 53 77.4 7
-    endloop
-  endfacet
-  facet normal 0 35 0
-    outer loop
-      vertex 63 80.4 2
-      vertex 68 80.4 7
-      vertex 68 80.4 0
-    endloop
-  endfacet
-  facet normal 0 25 0
-    outer loop
-      vertex 63 80.4 7
-      vertex 68 80.4 7
-      vertex 63 80.4 2
-    endloop
-  endfacet
-  facet normal 0 16 0
-    outer loop
-      vertex 50 80.4 0
-      vertex 55 80.4 2
-      vertex 63 80.4 2
-    endloop
-  endfacet
-  facet normal 0 36 0
-    outer loop
-      vertex 50 80.4 0
-      vertex 63 80.4 2
-      vertex 68 80.4 0
-    endloop
-  endfacet
-  facet normal 0 25 0
-    outer loop
-      vertex 50 80.4 7
-      vertex 55 80.4 7
-      vertex 55 80.4 2
-    endloop
-  endfacet
-  facet normal 0 35 0
-    outer loop
-      vertex 50 80.4 7
-      vertex 55 80.4 2
-      vertex 50 80.4 0
-    endloop
-  endfacet
-  facet normal 0 -35 0
-    outer loop
-      vertex 55 50 2
-      vertex 50 50 7
-      vertex 50 50 0
-    endloop
-  endfacet
-  facet normal 0 -25 0
-    outer loop
-      vertex 55 50 7
-      vertex 50 50 7
-      vertex 55 50 2
-    endloop
-  endfacet
-  facet normal 0 -16 0
-    outer loop
-      vertex 68 50 0
-      vertex 63 50 2
-      vertex 55 50 2
-    endloop
-  endfacet
-  facet normal 0 -36 0
-    outer loop
-      vertex 68 50 0
-      vertex 55 50 2
-      vertex 50 50 0
-    endloop
-  endfacet
-  facet normal 0 -25 0
-    outer loop
-      vertex 68 50 7
-      vertex 63 50 7
-      vertex 63 50 2
-    endloop
-  endfacet
-  facet normal 0 -35 0
-    outer loop
-      vertex 68 50 7
-      vertex 63 50 2
-      vertex 68 50 0
-    endloop
-  endfacet
-  facet normal -122 -0 0
-    outer loop
-      vertex 65 53 7
-      vertex 65 77.4 7
-      vertex 65 77.4 2
-    endloop
-  endfacet
-  facet normal -122 -0 0
-    outer loop
-      vertex 65 53 7
-      vertex 65 77.4 2
-      vertex 65 53 2
-    endloop
-  endfacet
-  facet normal 212.8 -0 -0
-    outer loop
-      vertex 68 80.4 7
-      vertex 68 50 7
-      vertex 68 50 0
-    endloop
-  endfacet
-  facet normal 212.8 -0 -0
-    outer loop
-      vertex 68 80.4 7
-      vertex 68 50 0
-      vertex 68 80.4 0
-    endloop
-  endfacet
-  facet normal -15 0 0
-    outer loop
-      vertex 63 50 7
-      vertex 63 53 2
-      vertex 63 50 2
-    endloop
-  endfacet
-  facet normal -15 0 0
-    outer loop
-      vertex 63 50 7
-      vertex 63 53 7
-      vertex 63 53 2
-    endloop
-  endfacet
-  facet normal 0 10 0
-    outer loop
-      vertex 63 53 7
-      vertex 65 53 2
-      vertex 63 53 2
-    endloop
-  endfacet
-  facet normal 0 10 0
-    outer loop
-      vertex 63 53 7
-      vertex 65 53 7
-      vertex 65 53 2
-    endloop
-  endfacet
-  facet normal -0 -0 24
-    outer loop
-      vertex 63 53 2
-      vertex 55 53 2
-      vertex 55 50 2
-    endloop
-  endfacet
-  facet normal -0 -0 24
-    outer loop
-      vertex 63 53 2
-      vertex 55 50 2
-      vertex 63 50 2
-    endloop
-  endfacet
-  facet normal -0 -0 48.8
-    outer loop
-      vertex 55 77.4 2
-      vertex 53 77.4 2
-      vertex 53 53 2
-    endloop
-  endfacet
-  facet normal -0 -0 48.8
-    outer loop
-      vertex 55 77.4 2
-      vertex 53 53 2
-      vertex 55 53 2
-    endloop
-  endfacet
-  facet normal -0 -0 195.2
-    outer loop
-      vertex 63 77.4 2
-      vertex 55 53 2
-      vertex 63 53 2
-    endloop
-  endfacet
-  facet normal -0 -0 195.2
-    outer loop
-      vertex 63 77.4 2
-      vertex 55 77.4 2
-      vertex 55 53 2
-    endloop
-  endfacet
-  facet normal -0 -0 48.8
-    outer loop
-      vertex 65 77.4 2
-      vertex 63 53 2
-      vertex 65 53 2
-    endloop
-  endfacet
-  facet normal -0 -0 48.8
-    outer loop
-      vertex 65 77.4 2
-      vertex 63 77.4 2
-      vertex 63 53 2
-    endloop
-  endfacet
-  facet normal -0 -0 24
-    outer loop
-      vertex 63 80.4 2
-      vertex 55 80.4 2
-      vertex 55 77.4 2
-    endloop
-  endfacet
-  facet normal -0 -0 24
-    outer loop
-      vertex 63 80.4 2
-      vertex 55 77.4 2
-      vertex 63 77.4 2
-    endloop
-  endfacet
-  facet normal 122 -0 -0
-    outer loop
-      vertex 53 77.4 7
-      vertex 53 53 7
-      vertex 53 53 2
-    endloop
-  endfacet
-  facet normal 122 -0 -0
-    outer loop
-      vertex 53 77.4 7
-      vertex 53 53 2
-      vertex 53 77.4 2
-    endloop
-  endfacet
-  facet normal 0 10 0
-    outer loop
-      vertex 53 53 7
-      vertex 55 53 2
-      vertex 53 53 2
-    endloop
-  endfacet
-  facet normal 0 10 0
-    outer loop
-      vertex 53 53 7
-      vertex 55 53 7
-      vertex 55 53 2
-    endloop
-  endfacet
-  facet normal 15 -0 -0
-    outer loop
-      vertex 55 53 7
-      vertex 55 50 2
-      vertex 55 53 2
-    endloop
-  endfacet
-  facet normal 15 -0 -0
-    outer loop
-      vertex 55 53 7
-      vertex 55 50 7
-      vertex 55 50 2
-    endloop
-  endfacet
-  facet normal -212.8 -0 0
-    outer loop
-      vertex 50 50 7
-      vertex 50 80.4 7
-      vertex 50 80.4 0
-    endloop
-  endfacet
-  facet normal -212.8 -0 0
-    outer loop
-      vertex 50 50 7
-      vertex 50 80.4 0
-      vertex 50 50 0
-    endloop
-  endfacet
-  facet normal -0 -0 -547.2
-    outer loop
-      vertex 68 80.4 0
-      vertex 50 50 0
-      vertex 50 80.4 0
-    endloop
-  endfacet
-  facet normal -0 -0 -547.2
-    outer loop
-      vertex 68 80.4 0
-      vertex 68 50 0
-      vertex 50 50 0
+      vertex 65 65 -0
+      vertex 50 50 -0
+      vertex 50 65 -0
     endloop
   endfacet
 endsolid polyhedron

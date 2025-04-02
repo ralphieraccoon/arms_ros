@@ -44,38 +44,6 @@ void Assembler::generateAssemblySequence()
 
     generateNegatives();
 
-    //If initial (or target) assembly has internal parts, do slicer stuff and then set target_assembly position
-    if (initial_assembly_->getNumInternalParts() != 0)
-    {
-        //Arrange the internal parts on the bed
-        if (!arrangeInternalParts())
-        {
-            std::cerr << "Parts cannot be arranged" << std::endl;
-
-            return;
-        }
-
-        //Get the slicing GCODE from prusa slicer
-        generateSlicerGcode();
-
-        //Set the target assembly position
-
-            //If base part is internal
-
-            //Else
-    }
-
-    //If initial (or target) assembly has no internal parts, set target_assembly position to middle of bed
-    else
-    {
-        //set target assembly positions at bed center
-        target_assembly_->placeOnPoint(Point(PRINT_BED_CENTER[0], PRINT_BED_CENTER[1], PRINT_BED_HEIGHT));
-    }
-
-    //At this point we have the target assembly, with the components in the correct positions on the print bed that
-    //they will be in the finished design, and the initial assembly, with the external parts in their parts bay positions,
-    //the screws placed nowhere, and the internal parts needed fetching from Prusa
-
     std::cout << "Generating assembly" << std::endl;
 
     std::vector<std::shared_ptr<AssemblyNode>> path = breadthFirstZAssembly();
@@ -106,6 +74,55 @@ void Assembler::generateAssemblySequence()
             }
         }
     }
+
+    if (path.size() < 2)
+        return;
+
+    //TODO janky
+    std::shared_ptr<Part> target_base_part = path[1]->assembly_->getParts()[0];
+
+
+    //If initial (or target) assembly has internal parts, do slicer stuff and then set target_assembly position
+    if (initial_assembly_->getNumInternalParts() != 0)
+    {
+        //Arrange the internal parts on the bed
+        if (!arrangeInternalParts())
+        {
+            std::cerr << "Parts cannot be arranged" << std::endl;
+
+            return;
+        }
+
+        //Get the slicing GCODE from prusa slicer
+        generateSlicerGcode();
+
+        //Set the target assembly position
+        
+        //If base part is internal, build on that
+        if (target_base_part->getType() == Part::INTERNAL)
+        {
+            std::shared_ptr<Part> initial_base_part = initial_assembly_->getPartById(target_base_part->getId());
+
+            target_assembly_->alignToPart(initial_base_part);
+        }
+        //Otherwise, we need to build in a free area
+        else    
+        {
+            std::cerr << "base part not internal" << std::endl;
+
+            return;
+        }
+    }
+
+    //If initial (or target) assembly has no internal parts, set target_assembly position to middle of bed
+    else
+    {
+        //set target assembly positions at bed center
+        target_assembly_->placeOnPoint(Point(PRINT_BED_CENTER[0], PRINT_BED_CENTER[1], PRINT_BED_HEIGHT));
+    }
+
+
+
 
 
     //In these commands for now let's give the part-height as the height of the pnp location relative to 0,
@@ -280,10 +297,13 @@ void Assembler::generateSlicerGcode()
 
     std::stringstream command_ss;
 
-    command_ss << "prusa-slicer --export-gcode --dont-arrange --output assembler.gcode";
+    command_ss << "prusa-slicer --export-gcode --dont-arrange --merge --output assembler.gcode";
 
     for (std::string filename : filenames)
         command_ss << " " << filename;
+
+
+    std::cout << "Slicing command: " << command_ss.str() << std::endl;
 
     int ret = std::system(command_ss.str().c_str());
 
@@ -302,7 +322,7 @@ void Assembler::generateSlicerGcode()
 
     std::string line;
     while (std::getline(gcodeFile, line)) {
-        std::cout << line << std::endl;
+        //std::cout << line << std::endl;
         // Process G-code commands here
         slicer_gcode.push_back(line);
     }
