@@ -321,10 +321,12 @@ void Assembler::generateSlicerGcode()
     }
 
     std::string line;
-    while (std::getline(gcodeFile, line)) {
-        //std::cout << line << std::endl;
-        // Process G-code commands here
+    while (std::getline(gcodeFile, line)) 
+    {
         slicer_gcode.push_back(line);
+
+        if (line == "M104 S0 ; turn off temperature")
+            break;
     }
 }
 
