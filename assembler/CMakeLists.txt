@@ -7,6 +7,7 @@ find_package(rclcpp REQUIRED)
 find_package(ament_cmake REQUIRED)
 find_package(ament_index_cpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
+find_package(assembler_msgs REQUIRED)
 find_package(visualization_msgs REQUIRED)
 find_package(CGAL REQUIRED)
 find_package(yaml-cpp REQUIRED)
@@ -24,6 +25,7 @@ ament_target_dependencies(assembler_node
   ament_index_cpp
   rclcpp
   sensor_msgs
+  assembler_msgs
   visualization_msgs
 )
 
