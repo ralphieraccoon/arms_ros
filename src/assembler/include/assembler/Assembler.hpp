@@ -56,7 +56,7 @@ private:
     std::string output_path_;
     std::string input_path_;
 
-    std::vector<std::string> slicer_gcode;
+    std::vector<std::string> slicer_gcode_;
 
 };
 

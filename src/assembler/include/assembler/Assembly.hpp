@@ -24,9 +24,11 @@ public:
 
     int getNumInternalParts();
 
-    void placeOnPoint(Point point);
+    //void placeOnPoint(Point point);
 
     void alignToPart(std::shared_ptr<Part> part);
+
+    void saveAsSTL(std::string filename);
 
 
 private:

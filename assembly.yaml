@@ -1,0 +1,13 @@
+commands:
+  - command-type: DESIGNATE_EXTERNAL_PART
+    command-properties:
+      part-id: 1
+      part-pick-height: 9.0999999999999979
+      part-place-height: 12.000000149011607
+      part-pick-pos-x: 0
+      part-pick-pos-y: 0
+      part-place-pos-x: 59
+      part-place-pos-y: 119.29999999999998
+  - command-type: PLACE_PART
+    command-properties:
+      part-id: 1
