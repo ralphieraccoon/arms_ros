@@ -1,26 +1,29 @@
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_action/rclcpp_action.hpp>
 #include <visualization_msgs/msg/marker.hpp>
+#include <rclcpp_components/register_node_macro.hpp>
 
 #include "assembler/Assembler.hpp"
 #include "assembler/Assembly.hpp"
 #include "assembler/ModelLoader.hpp"
 #include "assembler/Part.hpp"
 
-#include "assembler_msgs/process_model.hpp"
+#include "assembler_msgs/action/process_model.hpp"
 
-#include <ament_index_cpp/get_package_share_directory.hpp>
+// #include <ament_index_cpp/get_package_share_directory.hpp>
 
 #include <iostream>
 
 #include "assembler/visibility_control.h"
 
-class AssemblerNode : public rclcpp::Node {
+class AssemblerNode : public rclcpp::Node
+{
 public:
   PROCESS_MODEL_CPP_PUBLIC
-  explicit AssemblerNode(const std::string &filename)
+  explicit AssemblerNode(const rclcpp::NodeOptions & options = rclcpp::NodeOptions())
       : Node("model_loader"), loader_(std::make_shared<ModelLoader>()),
-        assembler_(std::make_shared<Assembler>()) {
+        assembler_(std::make_shared<Assembler>())
+  {
     RCLCPP_INFO(this->get_logger(), "Model loader node starting");
 
     // std::string inputPath =
@@ -33,26 +36,35 @@ public:
 
     auto process_model_handle_goal =
         [this](const rclcpp_action::GoalUUID &uuid,
-               std::shared_ptr<const ProcessModel::Goal> goal) {
-          (void)uuid;
-          return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;
-        };
+               std::shared_ptr<const assembler_msgs::action::ProcessModel::Goal>
+                   goal)
+    {
+      (void)uuid;
+      return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;
+    };
 
     auto process_model_handle_cancel =
-        [this](const std::shared_ptr<GoalHandleProcessModel> goal_handle) {
-          (void)goal_handle;
-          return rclcpp_action::CancelResponse::ACCEPT;
-        };
+        [this](const std::shared_ptr<rclcpp_action::ServerGoalHandle<
+                   assembler_msgs::action::ProcessModel>>
+                   goal_handle)
+    {
+      (void)goal_handle;
+      return rclcpp_action::CancelResponse::ACCEPT;
+    };
 
     auto process_model_handle_accepted =
-        [this](const std::shared_ptr<GoalHandleProcessModel> goal_handle) {
-          // this needs to return quickly to avoid blocking the executor,
-          // so we declare a lambda function to be called inside a new thread
-          auto execute_in_thread = [this, goal_handle]() {
-            return this->proecess_model_execute(goal_handle);
-          };
-          std::thread{execute_in_thread}.detach();
-        };
+        [this](const std::shared_ptr<rclcpp_action::ServerGoalHandle<
+                   assembler_msgs::action::ProcessModel>>
+                   goal_handle)
+    {
+      // this needs to return quickly to avoid blocking the executor,
+      // so we declare a lambda function to be called inside a new thread
+      auto execute_in_thread = [this, goal_handle]()
+      {
+        return this->process_model_execute(goal_handle);
+      };
+      std::thread{execute_in_thread}.detach();
+    };
 
     process_model_action_server_ =
         rclcpp_action::create_server<assembler_msgs::action::ProcessModel>(
@@ -70,10 +82,14 @@ public:
 
 private:
   void process_model_execute(
-      const std::shared_ptr<GoalHandleProcessModel> goal_handle) {
+      const std::shared_ptr<
+          rclcpp_action::ServerGoalHandle<assembler_msgs::action::ProcessModel>>
+          goal_handle)
+  {
 
     const auto goal = goal_handle->get_goal();
-    auto result = std::make_shared<ProcessModel::Result>();
+    auto result =
+        std::make_shared<assembler_msgs::action::ProcessModel::Result>();
 
     std::shared_ptr<Assembly> target_assembly =
         loader_->loadModel(goal->model_file);
@@ -83,10 +99,10 @@ private:
     assembler_->setTargetAssembly(target_assembly);
 
     assembler_->generateAssemblySequence();
-
   }
 
-  void publishMesh(std::string inputPath) {
+  void publishMesh(std::string inputPath)
+  {
 
     std::shared_ptr<Assembly> assembly =
         loader_->loadModel(inputPath + "MotorMountTest v2.step");
@@ -126,21 +142,25 @@ private:
 
     std::cout << "Check3" << std::endl;
 
-    for (auto face = mesh->facets_begin(); face != mesh->facets_end(); ++face) {
+    for (auto face = mesh->facets_begin(); face != mesh->facets_end(); ++face)
+    {
       std::vector<geometry_msgs::msg::Point> face_points;
 
       std::cout << "Check4" << std::endl;
 
       // Ensure the face has a valid halfedge
-      if (face->halfedge() == nullptr) {
+      if (face->halfedge() == nullptr)
+      {
         std::cerr << "Error: Face has a null halfedge, skipping!" << std::endl;
         continue;
       }
 
       auto halfedge = face->halfedge();
-      do {
+      do
+      {
 
-        if (halfedge == nullptr) {
+        if (halfedge == nullptr)
+        {
           std::cerr << "Error: Encountered a null halfedge, skipping face!"
                     << std::endl;
           break; // Skip this face entirely
@@ -151,7 +171,8 @@ private:
         std::cout << "Check5" << std::endl;
 
         // Ensure vertex exists and has a valid point
-        if (vh == nullptr) {
+        if (vh == nullptr)
+        {
           std::cerr << "Warning: Encountered an invalid vertex!" << std::endl;
           continue; // Skip this halfedge
         }
@@ -176,11 +197,14 @@ private:
       std::cout << "Check9" << std::endl;
 
       // Ensure it's a triangle before adding to the marker
-      if (face_points.size() == 3) {
+      if (face_points.size() == 3)
+      {
         marker.points.push_back(face_points[0]);
         marker.points.push_back(face_points[1]);
         marker.points.push_back(face_points[2]);
-      } else {
+      }
+      else
+      {
         std::cerr << "Warning: Encountered a non-triangle face with "
                   << face_points.size() << " vertices, skipping!" << std::endl;
       }
@@ -205,7 +229,7 @@ private:
   }
 
   rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr marker_pub_;
-  rclcpp::Action rclcpp::TimerBase::SharedPtr timer_;
+  rclcpp::TimerBase::SharedPtr timer_;
 
   std::shared_ptr<Assembler> assembler_;
   std::shared_ptr<ModelLoader> loader_;
@@ -214,4 +238,4 @@ private:
       process_model_action_server_;
 };
 
-RCLCPP_COMPONENTS_REGISTER_NODE(assembler::AssemblerNode)
+RCLCPP_COMPONENTS_REGISTER_NODE(AssemblerNode)

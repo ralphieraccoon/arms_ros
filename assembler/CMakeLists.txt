@@ -4,6 +4,8 @@ project(assembler)
 
 # Find the required dependencies
 find_package(rclcpp REQUIRED)
+find_package(rclcpp_action REQUIRED)
+find_package(rclcpp_components REQUIRED)
 find_package(ament_cmake REQUIRED)
 find_package(ament_index_cpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
@@ -13,21 +15,37 @@ find_package(CGAL REQUIRED)
 find_package(yaml-cpp REQUIRED)
 find_package(OpenCASCADE REQUIRED)
 
+add_library(assembler_node SHARED
+  src/assembler_node.cpp)
+target_include_directories(assembler_node PRIVATE
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>)
+target_compile_definitions(assembler_node
+  PRIVATE "CUSTOM_ACTION_CPP_BUILDING_DLL")
+ament_target_dependencies(assembler_node
+  assembler_msgs
+  sensor_msgs
+  visualization_msgs
+  rclcpp
+  rclcpp_action
+  rclcpp_components)
+rclcpp_components_register_node(assembler_node PLUGIN "custom_action_cpp::process_model" EXECUTABLE process_model)
+
 include_directories(include)
 
 link_directories("/usr/lib")
 
 # Declare the package
-add_executable(assembler_node src/assembler_node.cpp src/ModelLoader.cpp src/Assembler.cpp src/Assembly.cpp src/Part.cpp src/MeshFunctions.cpp src/ARMSConfig.cpp)
+# add_executable(assembler_node src/assembler_node.cpp src/ModelLoader.cpp src/Assembler.cpp src/Assembly.cpp src/Part.cpp src/MeshFunctions.cpp src/ARMSConfig.cpp)
 
 # Link against the necessary libraries
-ament_target_dependencies(assembler_node
-  ament_index_cpp
-  rclcpp
-  sensor_msgs
-  assembler_msgs
-  visualization_msgs
-)
+# ament_target_dependencies(assembler_node
+#   ament_index_cpp
+#   rclcpp
+#   sensor_msgs
+#   assembler_msgs
+#   visualization_msgs
+# )
 
 target_include_directories(assembler_node
   PRIVATE
@@ -42,9 +60,15 @@ target_link_libraries(assembler_node
   yaml-cpp::yaml-cpp
 )
 
-# Install executables and libraries
-install(TARGETS assembler_node
-  DESTINATION lib/${PROJECT_NAME}
-)
+# # Install executables and libraries
+# install(TARGETS assembler_node
+#   DESTINATION lib/${PROJECT_NAME}
+# )
+
+install(TARGETS
+  assembler_node
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin)
 
 ament_package()
