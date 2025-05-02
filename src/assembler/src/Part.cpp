@@ -26,6 +26,158 @@ bool Part::collide(std::shared_ptr<Part> otherPart)
     return false;  // If the distance couldn't be computed
 }
 
+gp_Pnt Part::createNegative()
+{
+    //ProjectedContourFromShape(*shape_, gp_Pnt(0, 0, 0), gp_Dir(0, 0, 1));
+
+    TopoDS_Shape substrate = BRepPrimAPI_MakeBox(40, 40, 6).Shape();    //TODO: box shape depends on part
+
+    //Get the substrate centroid
+    gp_Pnt substrate_centroid = ShapeCentroid(substrate);
+
+    //Get the shape centroid
+    gp_Pnt shape_centroid = ShapeCentroid(*shape_);
+
+    //Get the shape min z
+    Standard_Real shape_min_z = ShapeLowestPoint(*shape_);
+
+    //Get the substrate min z
+    Standard_Real substrate_min_z = ShapeLowestPoint(substrate);
+
+    //Move the substrate so that the X and Y centers align and the base is 2mm below the shape base
+
+    gp_Vec substrate_move(shape_centroid.X() - substrate_centroid.X(), 
+                          shape_centroid.Y() - substrate_centroid.Y(), 
+                          shape_min_z - substrate_min_z - 2);
+    
+    substrate = TranslateShape(substrate, substrate_move);
+
+    Standard_Real step_size = 1;
+
+    //Get bounding box of part
+    Bnd_Box shape_bbox = ShapeBoundingBox(*shape_);
+
+    //Create two boxes that are slightly larger than this
+    TopoDS_Shape top_bound = BRepPrimAPI_MakeBox(ShapeAxisSize(*shape_, 0) + 1, ShapeAxisSize(*shape_, 1) + 1, ShapeAxisSize(*shape_, 2) + 1).Shape();
+    TopoDS_Shape bottom_bound = BRepPrimAPI_MakeBox(ShapeAxisSize(*shape_, 0) + 1, ShapeAxisSize(*shape_, 1) + 1, ShapeAxisSize(*shape_, 2) + 1).Shape();
+
+    //Set one box bottom to bottom of part and XY centroid pos to part XY centroid pos
+    gp_Pnt top_centroid = ShapeCentroid(top_bound);
+    Standard_Real top_min_z = ShapeLowestPoint(top_bound);
+
+    gp_Vec top_move(shape_centroid.X() - top_centroid.X(), 
+                    shape_centroid.Y() - top_centroid.Y(), 
+                    shape_min_z - top_min_z);
+    
+    top_bound = TranslateShape(top_bound, top_move);
+
+    //Set other box top to bottom of part minus step size, and XY centroid pos to part XY centroid pos
+    gp_Pnt bottom_centroid = ShapeCentroid(bottom_bound);
+    Standard_Real bottom_max_z = ShapeHighestPoint(bottom_bound);
+
+    gp_Vec bottom_move(shape_centroid.X() - bottom_centroid.X(), 
+                    shape_centroid.Y() - bottom_centroid.Y(), 
+                    shape_min_z - bottom_max_z - step_size);
+    
+    bottom_bound = TranslateShape(bottom_bound, bottom_move);
+
+    std::vector<TopoDS_Shape> slivers;
+
+    //Step the boxes through the step size, cut the part with both of them
+    //Find the bounding box of the sliver, scale it
+    //Make sure the the x and y sizes are at least as big as the previous sliver
+    //Add to the list of slivers
+    for (int i = 0; i < 5; i ++)
+    {
+        std::cout << "making cuts" << std::endl;
+
+        top_bound = TranslateShape(top_bound, gp_Vec(0, 0, step_size));
+        bottom_bound = TranslateShape(bottom_bound, gp_Vec(0, 0, step_size));
+
+        // Perform the first subtraction: A - B
+        TopoDS_Shape first_cut = SubtractShapeBFromA(*shape_, bottom_bound);
+
+        //Perform the second subtraction
+        TopoDS_Shape both_cuts = SubtractShapeBFromA(first_cut, top_bound);
+
+
+        std::stringstream ss;
+
+        ss << "sliver" << i << ".stl";
+
+        SaveShapeAsSTL(both_cuts, ss.str());
+
+
+
+        TopoDS_Shape both_cuts_bbox_shape = ShapeHighBoundingBoxShape(both_cuts, 5);
+
+        std::stringstream ss2;
+
+        ss2 << "sliver_bbox" << i << ".stl";
+
+        SaveShapeAsSTL(both_cuts_bbox_shape, ss2.str());
+
+        Standard_Real x_size = ShapeAxisSize(both_cuts_bbox_shape, 0);
+
+        Standard_Real y_size = ShapeAxisSize(both_cuts_bbox_shape, 1);
+
+        Standard_Real scaling_factor;
+
+        if (x_size < y_size)
+        {
+            scaling_factor = (x_size + 0.8) / x_size;
+        }
+
+        else
+        {
+            scaling_factor = (y_size + 0.8) / y_size;
+        }
+
+        TopoDS_Shape scaled_sliver = UniformScaleShape(both_cuts_bbox_shape, scaling_factor);
+
+        //Now extrude upwards
+
+        slivers.push_back(scaled_sliver);
+    }
+
+    int s = 0;
+
+    for (TopoDS_Shape sliver : slivers)
+    {
+        std::cout << "subtracting sliver" << std::endl;
+
+        substrate = SubtractShapeBFromA(substrate, sliver);
+
+        // std::stringstream ss;
+
+        // ss << "sliver" << s << ".stl";
+
+        // SaveShapeAsSTL(sliver, ss.str());
+
+        s++;
+    }
+
+
+
+    BRepMesh_IncrementalMesh(substrate, 0.1);  // Mesh with a 0.1 tolerance
+
+    // Export the result to STL
+    StlAPI_Writer substrate_writer;
+    substrate_writer.Write(substrate, (name_ + "_sliced_cradle.stl").c_str());
+
+    return gp_Pnt(0, 0, 0);
+}
+
+
+
+
+
+
+
+
+
+
+
 // void Part::translate(Vector translation)
 // {   
 //     translateMesh(mesh_, translation);

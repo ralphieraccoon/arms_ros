@@ -42,7 +42,9 @@ void Assembler::generateAssemblySequence()
 
     generateInitialAssembly();
 
-    // generateNegatives();
+    generateNegatives();
+
+    return; //TODO
 
     std::cout << "Generating assembly sequence" << std::endl;
 
@@ -603,6 +605,22 @@ void Assembler::generateInitialAssembly()
 
 void Assembler::generateNegatives()
 {
+    std::cout << "Generating negatives" << std::endl;
+
+    for (std::shared_ptr<Part> part : initial_assembly_->getParts())
+    {
+        std::cout << "Part type: " << part->getType() << std::endl;
+
+        //Only create negatives or external parts
+        if (part->getType() != Part::EXTERNAL)
+            continue;
+
+            std::cout << "Creating part negative" << std::endl;
+
+        part->createNegative();
+    }
+
+
     // negative_substrate_->setCentroidPosition(Point(0, 0, 0));
 
     // int i = 0;

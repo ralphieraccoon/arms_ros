@@ -35,8 +35,6 @@ private:
     {
         std::shared_ptr<Assembly> target_assembly = loader_->loadModel(inputPath + filename);
 
-        //assembler_->setSubstrate(loader_->loadSubstrate(inputPath + "Notched_socket_40_8.step"));
-
         assembler_->setTargetAssembly(target_assembly);
 
         assembler_->generateAssemblySequence();

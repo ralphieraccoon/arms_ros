@@ -68,6 +68,9 @@
 #include <codecvt>
 #include <locale>  // if you use codecvt
 
+#include <BRepAlgoAPI_Section.hxx>
+
+#include <TopoDS_Edge.hxx>
 #include <TopoDS_Face.hxx>
 #include <TopAbs_Orientation.hxx>
 #include <BRepAdaptor_Surface.hxx>
@@ -88,6 +91,21 @@
 #include <GProp_GProps.hxx>
 
 #include <STEPControl_Writer.hxx>
+
+#include <gp_GTrsf.hxx>
+#include <BRepBuilderAPI_GTransform.hxx>
+
+#include <Standard_Real.hxx>
+
+#include <BRepBuilderAPI_MakeFace.hxx>
+
+
+#include <BRepBuilderAPI_MakeWire.hxx>
+#include <BRepPrimAPI_MakePrism.hxx>
+
+#include <TopoDS_Edge.hxx>
+#include <TopoDS_Wire.hxx>
+#include <TopoDS_Face.hxx>
 
 // #include <CGAL/Exact_predicates_exact_constructions_kernel.h>
 // #include <CGAL/Polyhedron_3.h>
@@ -126,6 +144,33 @@
 // typedef CGAL::Surface_mesh<Kernel::Point_3> SurfaceMesh;
 // typedef CGAL::Bbox_3 BoundingBox;
 
+gp_Pnt ShapeCentroid(TopoDS_Shape shape);
+
+gp_Pnt ShapeCenterOfMass(TopoDS_Shape shape);
+
+Bnd_Box ShapeBoundingBox(TopoDS_Shape shape);
+
+TopoDS_Shape ShapeBoundingBoxShape(TopoDS_Shape shape);
+
+TopoDS_Shape ShapeHighBoundingBoxShape(TopoDS_Shape shape, Standard_Real height);
+
+Standard_Real ShapeLowestPoint(TopoDS_Shape shape);
+
+Standard_Real ShapeHighestPoint(TopoDS_Shape shape);
+
+Standard_Real ShapeAxisSize(TopoDS_Shape shape, int axis);
+
+TopoDS_Shape TranslateShape(TopoDS_Shape shape, gp_Vec vec);
+
+TopoDS_Shape NonUniformScaleShape(TopoDS_Shape shape, gp_Pnt scaling);
+
+TopoDS_Shape UniformScaleShape(TopoDS_Shape shape, Standard_Real scaling);
+
+TopoDS_Shape SubtractShapeBFromA(TopoDS_Shape shape_A, TopoDS_Shape shape_B);
+
+void SaveShapeAsSTL(TopoDS_Shape shape, std::string filename);
+
+//void ProjectedContourFromShape(TopoDS_Shape shape, gp_Pnt origin, gp_Dir normal);
 
 // BoundingBox meshBoundingBox(std::shared_ptr<Polyhedron> mesh);
 

@@ -34,6 +34,8 @@ public:
 
     bool collide(std::shared_ptr<Part> otherPart);
 
+    gp_Pnt createNegative();
+
     PART_TYPE                       getType()       { return type_; }
     size_t                          getId()         { return id_; }
     std::string                     getName()       { return name_; }
