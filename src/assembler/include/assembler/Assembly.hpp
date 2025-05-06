@@ -24,7 +24,7 @@ public:
 
     int getNumInternalParts();
 
-    //void placeOnPoint(Point point);
+    void placeOnPoint(gp_Pnt point);
 
     void alignToPart(std::shared_ptr<Part> part);
 

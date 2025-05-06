@@ -44,333 +44,337 @@ void Assembler::generateAssemblySequence()
 
     generateNegatives();
 
-    return; //TODO
-
     std::cout << "Generating assembly sequence" << std::endl;
 
     std::vector<std::shared_ptr<AssemblyNode>> path = breadthFirstZAssembly();
 
-    // std::vector<size_t> ordered_part_additions;
+    std::vector<size_t> ordered_part_additions;
 
-    // std::cout << std::endl << "Ordered part list: " << std::endl;
+    std::cout << std::endl << "Ordered part list: " << std::endl;
 
-    // for (std::shared_ptr<AssemblyNode> node : path)
-    // {
-    //     for (size_t part_id : node->assembly_->getPartIds())
-    //     {
-    //         bool part_present = false;
+    for (std::shared_ptr<AssemblyNode> node : path)
+    {
+        for (size_t part_id : node->assembly_->getPartIds())
+        {
+            bool part_present = false;
 
-    //         for (size_t id : ordered_part_additions)
-    //         {
-    //             if (id == part_id)
-    //                 part_present = true;
-    //         }
+            for (size_t id : ordered_part_additions)
+            {
+                if (id == part_id)
+                    part_present = true;
+            }
 
-    //         if (!part_present)
-    //         {
-    //             ordered_part_additions.push_back(part_id);
+            if (!part_present)
+            {
+                ordered_part_additions.push_back(part_id);
 
-    //             std::cout << "Part: " << part_id << std::endl;
+                std::cout << "Part: " << part_id << std::endl;
 
-    //             continue;
-    //         }
-    //     }
-    // }
+                continue;
+            }
+        }
+    }
 
-    // if (path.size() < 2)
-    //     return;
+    if (path.size() < 2)
+        return;
 
-    // //TODO janky
-    // std::shared_ptr<Part> target_base_part = path[1]->assembly_->getParts()[0];
+    //TODO janky
+    std::shared_ptr<Part> target_base_part = path[1]->assembly_->getParts()[0];
 
-    // //If initial (or target) assembly has internal parts, do slicer stuff and then set target_assembly position
-    // if (initial_assembly_->getNumInternalParts() != 0)
-    // {
-    //     //Arrange the internal parts on the bed
-    //     if (!arrangeInternalParts())
-    //     {
-    //         std::cerr << "Parts cannot be arranged" << std::endl;
+    //If initial (or target) assembly has internal parts, do slicer stuff and then set target_assembly position
+    if (initial_assembly_->getNumInternalParts() != 0)
+    {
+        //Arrange the internal parts on the bed
+        if (!arrangeInternalParts())
+        {
+            std::cerr << "Parts cannot be arranged" << std::endl;
 
-    //         return;
-    //     }
+            return;
+        }
 
-    //     //Get the slicing GCODE from prusa slicer
-    //     generateSlicerGcode();
+        //Get the slicing GCODE from prusa slicer
+        generateSlicerGcode();
 
-    //     //Set the target assembly position
+        //Set the target assembly position
         
-    //     //If base part is internal, build on that
-    //     if (target_base_part->getType() == Part::INTERNAL)
-    //     {
-    //         std::shared_ptr<Part> initial_base_part = initial_assembly_->getPartById(target_base_part->getId());
+        //If base part is internal, build on that
+        if (target_base_part->getType() == Part::INTERNAL)
+        {
+            std::shared_ptr<Part> initial_base_part = initial_assembly_->getPartById(target_base_part->getId());
 
-    //         target_assembly_->alignToPart(initial_base_part);
-    //     }
-    //     //Otherwise, we need to build in a free area
-    //     else    
-    //     {
-    //         std::cerr << "base part not internal" << std::endl;
+            target_assembly_->alignToPart(initial_base_part);
+        }
+        //Otherwise, we need to build in a free area
+        else    
+        {
+            std::cerr << "base part not internal" << std::endl;
 
-    //         return;
-    //     }
-    // }
+            return;
+        }
+    }
 
-    // //If initial (or target) assembly has no internal parts, set target_assembly position to middle of bed
-    // else
-    // {
-    //     //set target assembly positions at bed center
-    //     target_assembly_->placeOnPoint(Point(PRINT_BED_CENTER[0], PRINT_BED_CENTER[1], PRINT_BED_HEIGHT));
-    // }
-
-
+    //If initial (or target) assembly has no internal parts, set target_assembly position to middle of bed
+    else
+    {
+        //set target assembly positions at bed center
+        target_assembly_->placeOnPoint(gp_Pnt(PRINT_BED_CENTER[0], PRINT_BED_CENTER[1], PRINT_BED_HEIGHT));
+    }
 
 
 
-    // //In these commands for now let's give the part-height as the height of the pnp location relative to 0,
-    // //and the z location as the height of the pnp placement location relative to 0
-    // //You then might need to offset by the vacuum toolhead offset at some point
 
 
-    // YAML::Node root;
-
-    // YAML::Node commands = YAML::Node(YAML::NodeType::Sequence);
-
-    // std::vector<std::shared_ptr<Part>> initial_parts = initial_assembly_->getParts();
-
-    // //TODO might get rid of locating external parts
-    // // for (std::shared_ptr<Part> part : initial_parts)
-    // // {        
-    // //     if (!part->getType() == Part::EXTERNAL)
-    // //         continue;
-
-    // //     YAML::Node detect_part_command;
-    // //     detect_part_command["command-type"] = "LOCATE_EXTERNAL_PART";
-    // //     detect_part_command["command-properties"]["part-description"] = ""; //TODO
-    // //     detect_part_command["command-properties"]["part-name"] = ""; //TODO
-    // //     detect_part_command["command-properties"]["part-id"] = part->getId();
-    // //     detect_part_command["command-properties"]["part-height"] = part->getMeshMaxZ(); //This is the height from 0, accounting for the cradle etc
-
-    // //     commands.push_back(detect_part_command);
-    // // }
+    //In these commands for now let's give the part-height as the height of the pnp location relative to 0,
+    //and the z location as the height of the pnp placement location relative to 0
+    //You then might need to offset by the vacuum toolhead offset at some point
 
 
+    YAML::Node root;
 
-    // //Designate internal parts
-    // for (std::shared_ptr<Part> part : initial_parts)
-    // {
-    //     if (!part->getType() == Part::INTERNAL)
-    //         continue;
+    YAML::Node commands = YAML::Node(YAML::NodeType::Sequence);
 
-    //     Point target_position = target_assembly_->getPartById(part->getId())->getCentroidPosition();
+    std::vector<std::shared_ptr<Part>> initial_parts = initial_assembly_->getParts();
 
-    //     YAML::Node designate_part_command;
-    //     designate_part_command["command-type"] = "DESIGNATE_INTERNAL_PART";
-    //     designate_part_command["command-properties"]["part-id"] = part->getId();
-    //     designate_part_command["command-properties"]["part-pick-height"] = part->getMeshMaxZ();
-    //     designate_part_command["command-properties"]["part-place-height"] = target_assembly_->getPartById(part->getId())->getMeshMaxZ();
-    //     designate_part_command["command-properties"]["part-pick-pos-x"] = CGAL::to_double(part->getCentroidPosition().x());
-    //     designate_part_command["command-properties"]["part-pick-pos-y"] = CGAL::to_double(part->getCentroidPosition().y());
-    //     designate_part_command["command-properties"]["part-place-pos-x"] = CGAL::to_double(target_position.x());
-    //     designate_part_command["command-properties"]["part-place-pos-y"] = CGAL::to_double(target_position.y());
-
-    //     commands.push_back(designate_part_command);
-    // }
-
-    // //Designate external parts
+    //TODO might get rid of locating external parts
     // for (std::shared_ptr<Part> part : initial_parts)
     // {        
     //     if (!part->getType() == Part::EXTERNAL)
     //         continue;
 
-    //     Point target_position = target_assembly_->getPartById(part->getId())->getCentroidPosition();
+    //     YAML::Node detect_part_command;
+    //     detect_part_command["command-type"] = "LOCATE_EXTERNAL_PART";
+    //     detect_part_command["command-properties"]["part-description"] = ""; //TODO
+    //     detect_part_command["command-properties"]["part-name"] = ""; //TODO
+    //     detect_part_command["command-properties"]["part-id"] = part->getId();
+    //     detect_part_command["command-properties"]["part-height"] = part->getMeshMaxZ(); //This is the height from 0, accounting for the cradle etc
 
-    //     YAML::Node designate_part_command;
-    //     designate_part_command["command-type"] = "DESIGNATE_EXTERNAL_PART";
-    //     designate_part_command["command-properties"]["part-id"] = part->getId();
-    //     designate_part_command["command-properties"]["part-pick-height"] = part->getMeshMaxZ(); //This is the height from 0, accounting for the cradle etc
-    //     designate_part_command["command-properties"]["part-place-height"] = target_assembly_->getPartById(part->getId())->getMeshMaxZ(); //This is the height from 0, accounting for the cradle etc
-    //     designate_part_command["command-properties"]["part-pick-pos-x"] = 0;   //TODO
-    //     designate_part_command["command-properties"]["part-pick-pos-y"] = 0;   //TODO
-    //     designate_part_command["command-properties"]["part-place-pos-x"] = CGAL::to_double(target_position.x());
-    //     designate_part_command["command-properties"]["part-place-pos-y"] = CGAL::to_double(target_position.y());
-
-    //     commands.push_back(designate_part_command);
-    // }
-
-    // //Print all internal parts together
-    // if (initial_assembly_->getNumInternalParts() != 0)
-    // {
-    //     YAML::Node direct_print_command;
-    //     direct_print_command["command-type"] = "DIRECT_PRINT";
-
-    //     // Add "gcode" sequence to the first command
-    //     YAML::Node gcode = YAML::Node(YAML::NodeType::Sequence);
-
-    //     for (std::string gcode_line : slicer_gcode_)
-    //     {
-    //         gcode.push_back(gcode_line);
-    //     }
-
-    //     direct_print_command["command-properties"]["gcode"] = gcode;
-
-    //     commands.push_back(direct_print_command);
+    //     commands.push_back(detect_part_command);
     // }
 
 
-    // //Iterate through each of the added parts in the path
-    // for (size_t part_id : ordered_part_additions)
-    // {
-    //     std::cout << "Adding PLACE_PART command" << std::endl;
 
-    //     std::cout << "Part type: " << initial_assembly_->getPartById(part_id)->getType() << std::endl;
+    //Designate internal parts
+    for (std::shared_ptr<Part> initial_part : initial_parts)
+    {
+        if (!initial_part->getType() == Part::INTERNAL)
+            continue;
 
-    //     //Do nothing with the base object if it's internal  //TODO janky
-    //     if (part_id == path[1]->assembly_->getPartIds()[0] && path[1]->assembly_->getParts()[0]->getType() == Part::INTERNAL)
-    //         continue;
+        std::shared_ptr<Part> target_part = target_assembly_->getPartById(initial_part->getId());
 
-    //     //Point target_position = target_assembly_->getPartById(part_id)->getCentroidPosition();
+        gp_Pnt pick_position(initial_part->getCentroid().X(), 
+                             initial_part->getCentroid().Y(),
+                             initial_part->getHighestPoint());
 
-    //     YAML::Node place_part_command;
+        gp_Pnt place_position(target_part->getCentroid().X(), 
+                              target_part->getCentroid().Y(),
+                              target_part->getHighestPoint());
 
-    //     place_part_command["command-type"] = "PLACE_PART";
-    //     //place_part_command["command-properties"]["part-name"] = ""; //TODO
-    //     place_part_command["command-properties"]["part-id"] = part_id;
-    //     //place_part_command["command-properties"]["x-target-pos"] = CGAL::to_double(target_position.x());
-    //     //place_part_command["command-properties"]["y-target-pos"] = CGAL::to_double(target_position.y());                    
-    //     //place_part_command["command-properties"]["z-target-pos"] = target_assembly_->getPartById(part_id)->getMeshMaxZ();
+        YAML::Node designate_part_command;
+        designate_part_command["command-type"] = "DESIGNATE_INTERNAL_PART";
+        designate_part_command["command-properties"]["part-id"] = initial_part->getId();
+        designate_part_command["command-properties"]["part-pick-height"] = pick_position.Z();
+        designate_part_command["command-properties"]["part-place-height"] = place_position.Z();
+        designate_part_command["command-properties"]["part-pick-pos-x"] = pick_position.X();
+        designate_part_command["command-properties"]["part-pick-pos-y"] = pick_position.Y();
+        designate_part_command["command-properties"]["part-place-pos-x"] = place_position.X();
+        designate_part_command["command-properties"]["part-place-pos-y"] = place_position.Y();
+
+        commands.push_back(designate_part_command);
+    }
+
+    //Designate external parts
+    for (std::shared_ptr<Part> initial_part : initial_parts)
+    {        
+        if (!initial_part->getType() == Part::EXTERNAL)
+            continue;
+
+        std::shared_ptr<Part> target_part = target_assembly_->getPartById(initial_part->getId());
+
+        gp_Pnt pick_position(initial_part->getCentroid().X(), 
+                                initial_part->getCentroid().Y(),
+                                initial_part->getHighestPoint());
+
+        gp_Pnt place_position(target_part->getCentroid().X(), 
+                                target_part->getCentroid().Y(),
+                                target_part->getHighestPoint());
+
+        YAML::Node designate_part_command;
+        designate_part_command["command-type"] = "DESIGNATE_EXTERNAL_PART";
+        designate_part_command["command-properties"]["part-id"] = initial_part->getId();
+        designate_part_command["command-properties"]["part-pick-height"] = pick_position.Z(); //This is the height from 0, accounting for the cradle etc TODO
+        designate_part_command["command-properties"]["part-place-height"] = place_position.Z(); //This is the height from 0, accounting for the cradle etc
+        designate_part_command["command-properties"]["part-pick-pos-x"] = 0;   //TODO
+        designate_part_command["command-properties"]["part-pick-pos-y"] = 0;   //TODO
+        designate_part_command["command-properties"]["part-place-pos-x"] = place_position.X();
+        designate_part_command["command-properties"]["part-place-pos-y"] = place_position.Y();
+
+        commands.push_back(designate_part_command);
+    }
+
+    //Print all internal parts together
+    if (initial_assembly_->getNumInternalParts() != 0)
+    {
+        YAML::Node direct_print_command;
+        direct_print_command["command-type"] = "DIRECT_PRINT";
+
+        // Add "gcode" sequence to the first command
+        YAML::Node gcode = YAML::Node(YAML::NodeType::Sequence);
+
+        for (std::string gcode_line : slicer_gcode_)
+        {
+            gcode.push_back(gcode_line);
+        }
+
+        direct_print_command["command-properties"]["gcode"] = gcode;
+
+        commands.push_back(direct_print_command);
+    }
+
+
+    //Iterate through each of the added parts in the path
+    for (size_t part_id : ordered_part_additions)
+    {
+        std::cout << "Adding PLACE_PART command" << std::endl;
+
+        std::cout << "Part type: " << initial_assembly_->getPartById(part_id)->getType() << std::endl;
+
+        //Do nothing with the base object if it's internal  //TODO janky
+        if (part_id == path[1]->assembly_->getPartIds()[0] && path[1]->assembly_->getParts()[0]->getType() == Part::INTERNAL)
+            continue;
+
+        YAML::Node place_part_command;
+
+        place_part_command["command-type"] = "PLACE_PART";
+        place_part_command["command-properties"]["part-id"] = part_id;
         
-    //     commands.push_back(place_part_command);
-    // }
+        commands.push_back(place_part_command);
+    }
 
-    // root["commands"] = commands;
+    root["commands"] = commands;
 
+    std::ofstream fout(Assembler::output_path_ + "assembly_plan.yaml");
 
+    fout << root;
 
-    // std::ofstream fout(Assembler::output_path_ + "assembly_plan.yaml");
-
-    // fout << root;
-
-    // fout.close();
-
-
+    fout.close();
 }
 
 bool Assembler::arrangeInternalParts()
 {
-    // double currentY = PRINT_BED_BOTTOM_LEFT[1];
+    double currentY = PRINT_BED_BOTTOM_LEFT[1];
 
-    // double currentX = PRINT_BED_BOTTOM_LEFT[0];
+    double currentX = PRINT_BED_BOTTOM_LEFT[0];
 
-    // double nextY = PRINT_BED_BOTTOM_LEFT[1];
+    double nextY = PRINT_BED_BOTTOM_LEFT[1];
 
-    // for (std::shared_ptr<Part> part : initial_assembly_->getParts())
-    // {
-    //     if (part->getType() != Part::INTERNAL)
-    //         continue;
+    for (std::shared_ptr<Part> part : initial_assembly_->getParts())
+    {
+        if (part->getType() != Part::INTERNAL)
+            continue;
 
-    //     while (true)
-    //     {
-    //         BoundingBox part_box = meshBoundingBox(part->getMesh());
+        while (true)
+        {
+            TopoDS_Shape shape = *part->getShape();
 
-    //         Point part_position = Point(currentX + (part_box.x_span() / 2), currentY + (part_box.y_span() / 2), part_box.z_span() / 2);
+            gp_Pnt part_position(currentX + ShapeAxisSize(shape, 0) / 2, currentY + ShapeAxisSize(shape, 1) / 2, ShapeAxisSize(shape, 2) / 2);
 
-    //         double nextX = currentX + part_box.x_span() + PRINT_MIN_SPACING;
+            double nextX = currentX + ShapeAxisSize(shape, 0) + PRINT_MIN_SPACING;
 
-    //         double topY = currentY + part_box.y_span() + PRINT_MIN_SPACING;
+            double topY = currentY + ShapeAxisSize(shape, 1) + PRINT_MIN_SPACING;
 
-    //         std::cout << "nextX: " << nextX << "    topyY: " << topY << std::endl;
+            std::cout << "nextX: " << nextX << "    topyY: " << topY << std::endl;
 
-    //         //Check the new position is within parts bay bounds
-    //         if (topY > PRINT_BED_TOP_RIGHT[1])
-    //         {
-    //             //Parts can't fit, return false
-    //             return false;
-    //         }
+            //Check the new position is within parts bay bounds
+            if (topY > PRINT_BED_TOP_RIGHT[1])
+            {
+                //Parts can't fit, return false
+                return false;
+            }
 
-    //         else if (nextX > PRINT_BED_TOP_RIGHT[0])
-    //         {
-    //             //Start a new y layer, try again with this part
-    //             currentY = nextY;
-    //             currentX = PRINT_BED_BOTTOM_LEFT[0];
+            else if (nextX > PRINT_BED_TOP_RIGHT[0])
+            {
+                //Start a new y layer, try again with this part
+                currentY = nextY;
+                currentX = PRINT_BED_BOTTOM_LEFT[0];
 
-    //             continue;
-    //         }
+                continue;
+            }
 
-    //         //Otherwise, part fits
+            //Otherwise, part fits
 
-    //         part->setCentroidPosition(Point(currentX + (part_box.x_span() / 2), currentY + (part_box.y_span() / 2), part_box.z_span() / 2));
+            part->setCentroidPosition(part_position);
 
-    //         currentX = nextX;
+            currentX = nextX;
 
-    //         nextY = std::max(topY, nextY);
+            nextY = std::max(topY, nextY);
             
-    //         break;
-    //     }
-    // }
+            break;
+        }
+    }
 
     return true;
 }
 
 void Assembler::generateSlicerGcode()
 {
-    // //Find internal parts
-    // //They will already be in the correct position from previously arranging them
-    // //Save each as its own stl file
+    //Find internal parts
+    //They will already be in the correct position from previously arranging them
+    //Save each as its own stl file
 
-    // int i = 0;
+    int i = 0;
 
-    // std::vector<std::string> filenames;
+    std::vector<std::string> filenames;
 
-    // for (std::shared_ptr<Part> part : initial_assembly_->getParts())
-    // {
-    //     if (part->getType() != Part::INTERNAL)
-    //         continue;
+    for (std::shared_ptr<Part> part : initial_assembly_->getParts())
+    {
+        if (part->getType() != Part::INTERNAL)
+            continue;
 
-    //     std::stringstream ss;
+        std::stringstream ss;
 
-    //     ss << "internal_part_" << i << ".stl";
+        ss << "internal_part_" << i << ".stl";
 
-    //     saveMesh(part->getMesh(), ss.str());
+        part->saveShape(ss.str());
 
-    //     filenames.push_back(ss.str());
+        filenames.push_back(ss.str());
 
-    //     i ++;        
-    // }
+        i ++;        
+    }
 
-    // //Call Prusa Slicer with the stl files and the correct settings (don't allow rearranging)
+    //Call Prusa Slicer with the stl files and the correct settings (don't allow rearranging)
 
-    // std::stringstream command_ss;
+    std::stringstream command_ss;
 
-    // command_ss << "prusa-slicer --export-gcode --dont-arrange --merge --output assembler.gcode --load arms_prusa_config.ini";
+    command_ss << "prusa-slicer --export-gcode --dont-arrange --merge --output assembler.gcode --load arms_prusa_config.ini";
 
-    // for (std::string filename : filenames)
-    //     command_ss << " " << filename;
+    for (std::string filename : filenames)
+        command_ss << " " << filename;
 
-    // std::cout << "Slicing command: " << command_ss.str() << std::endl;
+    std::cout << "Slicing command: " << command_ss.str() << std::endl;
 
-    // int ret = std::system(command_ss.str().c_str());
+    int ret = std::system(command_ss.str().c_str());
 
-    // if (ret == 0) {
-    //     std::cout << "Slicing completed successfully!" << std::endl;
-    // } else {
-    //     std::cerr << "Error: PrusaSlicer execution failed!" << std::endl;
-    // }
+    if (ret == 0) {
+        std::cout << "Slicing completed successfully!" << std::endl;
+    } else {
+        std::cerr << "Error: PrusaSlicer execution failed!" << std::endl;
+    }
 
-    // //Load the GCode that Prusa writes
-    // std::ifstream gcodeFile("assembler.gcode");
-    // if (!gcodeFile) {
-    //     std::cerr << "Error: Cannot open G-code file." << std::endl;
-    //     return;
-    // }
+    //Load the GCode that Prusa writes
+    std::ifstream gcodeFile("assembler.gcode");
+    if (!gcodeFile) {
+        std::cerr << "Error: Cannot open G-code file." << std::endl;
+        return;
+    }
 
-    // std::string line;
-    // while (std::getline(gcodeFile, line)) 
-    // {
-    //     slicer_gcode_.push_back(line);
+    std::string line;
+    while (std::getline(gcodeFile, line)) 
+    {
+        slicer_gcode_.push_back(line);
 
-    //     if (line == "M104 S0 ; turn off temperature")
-    //         break;
-    // }
+        if (line == "M104 S0 ; turn off temperature")
+            break;
+    }
 }
 
 
@@ -619,35 +623,4 @@ void Assembler::generateNegatives()
 
         part->createNegative();
     }
-
-
-    // negative_substrate_->setCentroidPosition(Point(0, 0, 0));
-
-    // int i = 0;
-
-    // for (std::shared_ptr<Part> part : initial_assembly_->getParts())
-    // {
-    //     //Only create negatives or external parts
-    //     if (!part->getType() == Part::EXTERNAL)
-    //         continue;
-
-    //     std::stringstream ss;
-
-    //     ss << "negative_" << i << "_" << part->getName() << ".stl";
-
-    //     part->setCentroidPosition(Point(0, 0, 0));
-
-    //     Point bay_displacement = part->createNegative(negative_substrate_, ss.str());
-
-    //     //Correct for parts bed height
-    //     bay_displacement += Vector(0, 0, PARTS_BED_HEIGHT);
-
-    //     //Set to bay position
-    //     bay_displacement += Vector(PARTS_BAY_POSITIONS[i][0], PARTS_BAY_POSITIONS[i][1], 0);
-
-    //     //Then place part in the correct position
-    //     part->setCentroidPosition(bay_displacement);
-
-    //     i ++;
-    // }
 }

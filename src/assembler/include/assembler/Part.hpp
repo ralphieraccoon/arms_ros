@@ -30,16 +30,23 @@ public:
         return std::make_shared<Part>(*this);  // Uses copy constructor
     }
 
-    void translate(gp_Vec translation);
+    void translate(gp_Vec translation) {shape_ = std::make_shared<TopoDS_Shape>(TranslateShape(*shape_, translation));}
 
     bool collide(std::shared_ptr<Part> otherPart);
 
+    void setCentroidPosition(gp_Pnt position) {shape_ = std::make_shared<TopoDS_Shape>(ShapeSetCentroid(*shape_, position));}
+
     gp_Pnt createNegative();
 
-    PART_TYPE                       getType()       { return type_; }
-    size_t                          getId()         { return id_; }
-    std::string                     getName()       { return name_; }
-    std::shared_ptr<TopoDS_Shape>   getShape()      { return shape_; }
+    void saveShape(std::string filename) {SaveShapeAsSTL(*shape_, filename);}
+
+    gp_Pnt                          getCentroid()       { return ShapeCentroid(*shape_); }
+    Standard_Real                          getHighestPoint()   { return ShapeHighestPoint(*shape_);}
+
+    PART_TYPE                       getType()           { return type_; }
+    size_t                          getId()             { return id_; }
+    std::string                     getName()           { return name_; }
+    std::shared_ptr<TopoDS_Shape>   getShape()          { return shape_; }
 
 private:
 

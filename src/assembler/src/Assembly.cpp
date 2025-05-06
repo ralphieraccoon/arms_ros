@@ -37,42 +37,6 @@ void Assembly::saveAsSTL(std::string filename)
 }
 
 
-// void Assembly::saveAssemblyAsSTL(std::string filename)
-// {
-//     for (std::shared_ptr<Part> part : parts_) {
-
-//         std::vector<SurfaceMesh::Vertex_index> vertex_indices;
-        
-//         // Copy vertices
-//         for (auto v : part->getMesh()->ver  ->vertices()) {
-//             Kernel::Point_3 p = mesh.point(v);
-//             SurfaceMesh::Vertex_index new_v = merged_mesh.add_vertex(p);
-//             vertex_map[v] = new_v;
-//         }
-
-//         // Copy faces
-//         for (auto f : mesh.faces()) {
-//             std::vector<SurfaceMesh::Vertex_index> new_vertices;
-//             for (auto v : CGAL::vertices_around_face(mesh.halfedge(f), mesh)) {
-//                 new_vertices.push_back(vertex_map[v]);
-//             }
-//             merged_mesh.add_face(new_vertices);
-//         }
-//     }
-
-
-//     Polyhedron combined_mesh;
-    
-//     for (std::shared_ptr<Part> part : parts_) {
-//         Polyhedron temp_mesh = *part->getMesh();
-//         CGAL::Polygon_mesh_processing::append(combined_mesh, temp_mesh);
-//     }
-
-//     std::ofstream out(filename, std::ios::binary);
-//     CGAL::write_STL(out, combined_mesh);
-//     out.close();
-// }
-
 std::vector<size_t> Assembly::getPartIds()
 {
     std::vector<size_t> part_ids;
@@ -129,47 +93,45 @@ void Assembly::alignToPart(std::shared_ptr<Part> part)
     // }
 }
 
-//void Assembly::placeOnPoint(Point point)
-//{
-    // //Find x,y center and lowest z point
-    // std::cout << std::endl << "Placing on point: " << point.x() << " " << point.y() << " " << point.z() << std::endl;
+void Assembly::placeOnPoint(gp_Pnt point)
+{
+    //Find x,y center and lowest z point
+    std::cout << std::endl << "Placing on point: " << point.X() << " " << point.Y() << " " << point.Z() << std::endl;
 
+    //Find the bounding box of the entire assembly
+    double xmin = std::numeric_limits<double>::max();
+    double ymin = std::numeric_limits<double>::max();
+    double zmin = std::numeric_limits<double>::max();
+    double xmax = std::numeric_limits<double>::lowest();
+    double ymax = std::numeric_limits<double>::lowest();
+    double zmax = std::numeric_limits<double>::lowest();
 
-    // double xmin = std::numeric_limits<double>::max();
-    // double ymin = std::numeric_limits<double>::max();
-    // double zmin = std::numeric_limits<double>::max();
-    // double xmax = std::numeric_limits<double>::lowest();
-    // double ymax = std::numeric_limits<double>::lowest();
-    // double zmax = std::numeric_limits<double>::lowest();
+    for (std::shared_ptr<Part> part : parts_)
+    {
+        Bnd_Box bbox = ShapeBoundingBox(*(part->getShape()));
 
-    // for (std::shared_ptr<Part> part : parts_)
-    // {
-    //     std::cout << "Part start pos: " << part->getCentroidPosition().x() << " " << part->getCentroidPosition().y() << " " << part->getCentroidPosition().z() << std::endl;
+        Standard_Real bb_xmin, bb_ymin, bb_zmin, bb_xmax, bb_ymax, bb_zmax;
 
+        bbox.Get(bb_xmin, bb_ymin, bb_zmin, bb_xmax, bb_ymax, bb_zmax);
 
-    //     BoundingBox bbox = meshBoundingBox(part->getMesh());
+        xmin = std::min(xmin, bb_xmin);
+        ymin = std::min(ymin, bb_ymin);
+        zmin = std::min(zmin, bb_zmin);
+        xmax = std::max(xmax, bb_xmax);
+        ymax = std::max(ymax, bb_ymax);
+        zmax = std::max(zmax, bb_zmax);
+    }
 
-    //     xmin = std::min(xmin, bbox.xmin());
-    //     ymin = std::min(ymin, bbox.ymin());
-    //     zmin = std::min(zmin, bbox.zmin());
-    //     xmax = std::max(xmax, bbox.xmax());
-    //     ymax = std::max(ymax, bbox.ymax());
-    //     zmax = std::max(zmax, bbox.zmax());
-    // }
+    double lowest_z = zmin;
 
-    // double lowest_z = zmin;
+    gp_Pnt center((xmin + xmax) / 2.0, (ymin + ymax) / 2.0, (zmin + zmax) / 2.0);
 
-    // Point center = Point((xmin + xmax) / 2.0, (ymin + ymax) / 2.0, (zmin + zmax) / 2.0);
+    //Move al parts so that x,y lies on point.x and point.y, and lowest z point lies on zero (or adjust for bed heighgt)
 
-    // //Move al parts so that x,y lies on point.x and point.y, and lowest z point lies on zero (or adjust for bed heighgt)
+    gp_Vec translation(point, gp_Pnt(center.X(), center.Y(), lowest_z));
 
-    // Vector translation = point - Point(center.x(), center.y(), lowest_z);
-
-    // for (std::shared_ptr<Part> part : parts_)
-    // {
-    //     part->translate(translation);
-
-    //     std::cout << "Part end pos: " << part->getCentroidPosition().x() << " " << part->getCentroidPosition().y() << " " << part->getCentroidPosition().z() << std::endl;
-
-    // }
-//}
+    for (std::shared_ptr<Part> part : parts_)
+    {
+        part->translate(translation);
+    }
+}

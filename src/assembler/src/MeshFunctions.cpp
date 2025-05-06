@@ -11,6 +11,17 @@ gp_Pnt ShapeCentroid(TopoDS_Shape shape)
     return gp_Pnt((xmin + xmax) / 2, (ymin + ymax) / 2, (zmin + zmax) / 2);
 }
 
+TopoDS_Shape ShapeSetCentroid(TopoDS_Shape shape, gp_Pnt position)
+{
+    gp_Pnt current_centroid = ShapeCentroid(shape);
+
+    gp_Vec move(position, current_centroid);
+
+    TopoDS_Shape moved_shape = TranslateShape(shape, move);
+
+    return moved_shape;
+}
+
 gp_Pnt ShapeCenterOfMass(TopoDS_Shape shape)
 {
     GProp_GProps props;

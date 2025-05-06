@@ -1,12 +1,5 @@
 #include "assembler/Part.hpp"
 
-void Part::translate(gp_Vec translation)
-{
-    gp_Trsf trans_trsf;
-    trans_trsf.SetTranslation(translation);
-    shape_ = std::make_shared<TopoDS_Shape>(shape_->Moved(trans_trsf));
-}
-
 bool Part::collide(std::shared_ptr<Part> otherPart)
 {
     BRepExtrema_DistShapeShape distCalc(*shape_, *(otherPart->getShape()));
@@ -28,8 +21,6 @@ bool Part::collide(std::shared_ptr<Part> otherPart)
 
 gp_Pnt Part::createNegative()
 {
-    //ProjectedContourFromShape(*shape_, gp_Pnt(0, 0, 0), gp_Dir(0, 0, 1));
-
     TopoDS_Shape substrate = BRepPrimAPI_MakeBox(40, 40, 6).Shape();    //TODO: box shape depends on part
 
     //Get the substrate centroid
@@ -148,12 +139,6 @@ gp_Pnt Part::createNegative()
 
         substrate = SubtractShapeBFromA(substrate, sliver);
 
-        // std::stringstream ss;
-
-        // ss << "sliver" << s << ".stl";
-
-        // SaveShapeAsSTL(sliver, ss.str());
-
         s++;
     }
 
@@ -167,8 +152,6 @@ gp_Pnt Part::createNegative()
 
     return gp_Pnt(0, 0, 0);
 }
-
-
 
 
 

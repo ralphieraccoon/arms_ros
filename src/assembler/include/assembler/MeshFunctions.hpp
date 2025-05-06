@@ -146,6 +146,8 @@
 
 gp_Pnt ShapeCentroid(TopoDS_Shape shape);
 
+TopoDS_Shape ShapeSetCentroid(TopoDS_Shape shape, gp_Pnt position);
+
 gp_Pnt ShapeCenterOfMass(TopoDS_Shape shape);
 
 Bnd_Box ShapeBoundingBox(TopoDS_Shape shape);
