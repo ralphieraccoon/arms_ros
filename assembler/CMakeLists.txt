@@ -11,9 +11,19 @@ find_package(ament_index_cpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(assembler_msgs REQUIRED)
 find_package(visualization_msgs REQUIRED)
-find_package(CGAL REQUIRED)
 find_package(yaml-cpp REQUIRED)
 find_package(OpenCASCADE REQUIRED)
+
+set(CMAKE_PREFIX_PATH "/usr/local" ${CMAKE_PREFIX_PATH})
+find_package(CGAL REQUIRED)
+
+find_path(ASSIMP_INCLUDE_DIR NAMES assimp/Importer.hpp)
+find_library(ASSIMP_LIBRARY NAMES assimp)
+
+message(STATUS "CGAL include dirs: ${CGAL_INCLUDE_DIRS}")
+message(STATUS "CGAL libraries: ${CGAL_LIBRARIES}")
+
+include_directories((${ASSIMP_INCLUDE_DIR}))
 
 add_library(assembler_node SHARED
   src/assembler_node.cpp)
