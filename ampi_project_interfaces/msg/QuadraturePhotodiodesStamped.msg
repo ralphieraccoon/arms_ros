@@ -1,0 +1,3 @@
+std_msgs/Header header
+QuadraturePhotodiode left
+QuadraturePhotodiode right
