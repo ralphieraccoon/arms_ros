@@ -11,7 +11,7 @@
 
 Assembly::Assembly()
 {
-    std::cout << "Creating assembly" << std::endl;
+    //std::cout << "Creating assembly" << std::endl;
 }
 
 void Assembly::saveAsSTL(std::string filename)
@@ -77,20 +77,20 @@ int Assembly::getNumInternalParts()
 
 void Assembly::alignToPart(std::shared_ptr<Part> part)
 {
-    // std::shared_ptr<Part> thisPart = getPartById(part->getId());
+    std::shared_ptr<Part> thisPart = getPartById(part->getId());
 
-    // if (thisPart == nullptr)
-    // {
-    //     std::cerr << "Corresponding part can't be found in assembly" << std::endl;
-    //     return;
-    // }
+    if (thisPart == nullptr)
+    {
+        std::cerr << "Corresponding part can't be found in assembly" << std::endl;
+        return;
+    }
 
-    // Vector delta = part->getCentroidPosition() - thisPart->getCentroidPosition();
+    gp_Vec delta(thisPart->getCentroid(), part->getCentroid());
 
-    // for (std::shared_ptr<Part> part_ : parts_)
-    // {
-    //     part_->translate(delta);
-    // }
+    for (std::shared_ptr<Part> part_ : parts_)
+    {
+        part_->translate(delta);
+    }
 }
 
 void Assembly::placeOnPoint(gp_Pnt point)

@@ -41,6 +41,8 @@ private:
 
     void generateSlicerGcode();
 
+    void generateGrasps();
+
     bool arrangeInternalParts();
 
     std::vector<std::shared_ptr<AssemblyNode>> breadthFirstZAssembly();
@@ -57,6 +59,8 @@ private:
     std::string input_path_;
 
     std::vector<std::string> slicer_gcode_;
+
+    std::vector<std::vector<bool>> bay_occupancy_;
 
 };
 

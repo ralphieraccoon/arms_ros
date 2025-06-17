@@ -1,7 +1,77 @@
 #include "assembler/Part.hpp"
 
+#include "assembler/ARMSConfig.hpp"
+
+#include <cmath>
+
 bool Part::collide(std::shared_ptr<Part> otherPart)
 {
+    //Check bounding boxes first. If they don't intersect then parts don't collide. Else continue testing
+    Bnd_Box this_bb = ShapeBoundingBox(*shape_);
+    Bnd_Box other_bb = ShapeBoundingBox(*(otherPart->getShape()));
+
+
+    Standard_Real xmin_this, ymin_this, zmin_this, xmax_this, ymax_this, zmax_this;
+
+    this_bb.Get(xmin_this, ymin_this, zmin_this, xmax_this, ymax_this, zmax_this);
+
+
+
+    Standard_Real xmin_other, ymin_other, zmin_other, xmax_other, ymax_other, zmax_other;
+
+    other_bb.Get(xmin_other, ymin_other, zmin_other, xmax_other, ymax_other, zmax_other);
+
+    // std::cout << "this_bb - x: " << xmin_this << " - " << xmax_this
+    //           << " y: " << ymin_this << " - " << ymax_this
+    //           << " z: " << zmin_this << " - " << zmax_this << std::endl; 
+
+    // std::cout << "other_bb - x: " << xmin_other << " - " << xmax_other
+    //           << " y: " << ymin_other << " - " << ymax_other
+    //           << " z: " << zmin_other << " - " << zmax_other << std::endl;
+
+
+
+    if (this_bb.IsOut(other_bb))
+        return false;
+
+    std::cout << "bbox overlap" << std::endl;
+
+
+
+
+    //TODO need to speed this up
+    //Could try a completely different approach
+    //Could also first check if bounding boxes intersect
+    //Also don't need to go as far as you're going - only need to step until part bb has cleared assembly bb
+
+
+    // BRepAlgoAPI_Common common(*shape_, *(otherPart->getShape()));
+    // common.Build();
+
+    // if (common.IsDone()) {
+        
+    //     std::stringstream ss;
+
+    //     ss << "collision_" << id_ << " " << otherPart->getId() << ".stl";
+
+    //     SaveShapeAsSTL(common.Shape(), ss.str().c_str());
+
+    //     if (!common.Shape().IsNull())
+    //     {
+    //         std::cout << "common collision" << std::endl;
+
+    //         return true;
+    //     }
+
+    //     else
+    //     {
+    //         std::cout << "no common collision" << std::endl;
+
+    //         return false;
+    //     }
+    // }
+
+
     BRepExtrema_DistShapeShape distCalc(*shape_, *(otherPart->getShape()));
     if (distCalc.IsDone()) {
 
@@ -19,9 +89,59 @@ bool Part::collide(std::shared_ptr<Part> otherPart)
     return false;  // If the distance couldn't be computed
 }
 
-gp_Pnt Part::createNegative()
+void Part::createNegativeAndPositionPart(std::vector<std::vector<bool>>& occupancy)
 {
-    TopoDS_Shape substrate = BRepPrimAPI_MakeBox(40, 40, 6).Shape();    //TODO: box shape depends on part
+
+    //Evaluate the size of the part and choose a suitable substrate size (and therefore bay position)
+    
+    Standard_Real x_size = ShapeAxisSize(*shape_, 0);
+
+    Standard_Real y_size = ShapeAxisSize(*shape_, 1);
+
+    std::cout << "Part width: " << x_size << std::endl;
+
+    std::cout << "Part height: " << y_size << std::endl;
+
+    int size_index = 0;
+
+    if (x_size > 38 || y_size > 38)
+    {
+        size_index = 1;
+    }
+
+    double substrate_depth = 6;
+
+    TopoDS_Shape substrate = BRepPrimAPI_MakeBox(BAY_SIZES[size_index], BAY_SIZES[size_index], substrate_depth).Shape();    //TODO: box shape depends on part
+
+    TopoDS_Shape notch = BRepPrimAPI_MakeCylinder(3, 2).Shape();
+
+    notch = ShapeSetCentroid(notch, gp_Pnt(0, 0, ShapeHighestPoint(substrate)));
+
+    substrate = BRepAlgoAPI_Cut(substrate, notch);
+
+    //Find a free, appropriately sized bay (TODO need to do this before creating the substrate)
+    int bay_index = -1;
+
+    for (int i = 0; i < occupancy[size_index].size(); i ++)
+    {
+        if (occupancy[size_index][i] == false)
+        {
+            bay_index = i;
+            break;
+        }
+    }
+
+    if (bay_index == -1)
+    {
+        std::cerr << "No free bay" << std::endl;
+        return;
+    }
+
+    occupancy[size_index][bay_index] = true;
+
+    //Position the substrate in the parts bay
+
+    substrate = ShapeSetCentroid(substrate, gp_Pnt(PARTS_BAY_POSITIONS[size_index][bay_index].X(), PARTS_BAY_POSITIONS[size_index][bay_index].Y(), (substrate_depth / 2) - 3));
 
     //Get the substrate centroid
     gp_Pnt substrate_centroid = ShapeCentroid(substrate);
@@ -35,18 +155,29 @@ gp_Pnt Part::createNegative()
     //Get the substrate min z
     Standard_Real substrate_min_z = ShapeLowestPoint(substrate);
 
-    //Move the substrate so that the X and Y centers align and the base is 2mm below the shape base
+    //Move the shape so that the X and Y centers align and the base is 2mm above the substrate base
 
-    gp_Vec substrate_move(shape_centroid.X() - substrate_centroid.X(), 
-                          shape_centroid.Y() - substrate_centroid.Y(), 
-                          shape_min_z - substrate_min_z - 2);
+    gp_Vec shape_move(substrate_centroid.X() - shape_centroid.X(),
+                      substrate_centroid.Y() - shape_centroid.Y(),
+                      substrate_min_z - shape_min_z + 2);
+
+    // //Move the substrate so that the X and Y centers align and the base is 2mm below the shape base
+
+    // gp_Vec substrate_move(shape_centroid.X() - substrate_centroid.X(), 
+    //                       shape_centroid.Y() - substrate_centroid.Y(), 
+    //                       shape_min_z - substrate_min_z - 2);
     
-    substrate = TranslateShape(substrate, substrate_move);
+    // substrate = TranslateShape(substrate, substrate_move);
+
+    *shape_ = TranslateShape(*shape_, shape_move);
+
+    //Get the shape centroid
+    shape_centroid = ShapeCentroid(*shape_);
+
+    //Get the shape min z
+    shape_min_z = ShapeLowestPoint(*shape_);
 
     Standard_Real step_size = 1;
-
-    //Get bounding box of part
-    Bnd_Box shape_bbox = ShapeBoundingBox(*shape_);
 
     //Create two boxes that are slightly larger than this
     TopoDS_Shape top_bound = BRepPrimAPI_MakeBox(ShapeAxisSize(*shape_, 0) + 1, ShapeAxisSize(*shape_, 1) + 1, ShapeAxisSize(*shape_, 2) + 1).Shape();
@@ -85,28 +216,73 @@ gp_Pnt Part::createNegative()
         top_bound = TranslateShape(top_bound, gp_Vec(0, 0, step_size));
         bottom_bound = TranslateShape(bottom_bound, gp_Vec(0, 0, step_size));
 
+
+        bool perform_first_cut = true;
+        bool perform_second_cut = true;
+        
+
+        TopoDS_Shape first_intersect = ShapeIntersection(*shape_, bottom_bound);
+
+        if (first_intersect.IsNull())
+        {
+            perform_first_cut = false;
+
+            std::cout << "No first cut" << std::endl;
+        }
+
+        TopoDS_Shape second_intersect = ShapeIntersection(*shape_, top_bound);
+
+        if (second_intersect.IsNull())
+        {
+            perform_second_cut = false;
+
+            std::cout << "No second cut" << std::endl;
+        }
+
+        if (!perform_first_cut)
+            break;
+
         // Perform the first subtraction: A - B
+        
+        std::cout << "subtraction 1" << std::endl;
+
         TopoDS_Shape first_cut = SubtractShapeBFromA(*shape_, bottom_bound);
 
-        //Perform the second subtraction
-        TopoDS_Shape both_cuts = SubtractShapeBFromA(first_cut, top_bound);
+        TopoDS_Shape both_cuts;
 
+        if (perform_second_cut)
+        {
+            std::cout << "substraction 2" << std::endl;
 
-        std::stringstream ss;
+            //Perform the second subtraction
+            both_cuts = SubtractShapeBFromA(first_cut, top_bound);
+        }
 
-        ss << "sliver" << i << ".stl";
+        else
+        {
+            both_cuts = first_cut;
+        }
 
-        SaveShapeAsSTL(both_cuts, ss.str());
+        if (ShapeBoundingBox(both_cuts).IsVoid())
+            break;
 
+        // std::stringstream ss;
 
+        // ss << "sliver" << i << ".stl";
+
+        // std::cout << "saving sliver" << std::endl;
+
+        // SaveShapeAsSTL(both_cuts, ss.str());
 
         TopoDS_Shape both_cuts_bbox_shape = ShapeHighBoundingBoxShape(both_cuts, 5);
 
-        std::stringstream ss2;
+        // std::stringstream ss2;
 
-        ss2 << "sliver_bbox" << i << ".stl";
+        // ss2 << "sliver_bbox" << i << ".stl";
 
-        SaveShapeAsSTL(both_cuts_bbox_shape, ss2.str());
+        // std::cout << "saving sliver bbox" << std::endl;
+
+        // SaveShapeAsSTL(both_cuts_bbox_shape, ss2.str());
 
         Standard_Real x_size = ShapeAxisSize(both_cuts_bbox_shape, 0);
 
@@ -139,203 +315,312 @@ gp_Pnt Part::createNegative()
 
         substrate = SubtractShapeBFromA(substrate, sliver);
 
+        std::cout << "Sliver width: " << ShapeAxisSize(sliver, 0) << std::endl;
+
+        std::cout << "Sliver height: " << ShapeAxisSize(sliver, 1) << std::endl;
+
         s++;
     }
 
-
-
     BRepMesh_IncrementalMesh(substrate, 0.1);  // Mesh with a 0.1 tolerance
+
+    std::stringstream sub_ss;
+
+    sub_ss << name_ << "_sliced_cradle_size_index_" << size_index << "_bay_index_" << bay_index << ".stl";
 
     // Export the result to STL
     StlAPI_Writer substrate_writer;
-    substrate_writer.Write(substrate, (name_ + "_sliced_cradle.stl").c_str());
-
-    return gp_Pnt(0, 0, 0);
+    substrate_writer.Write(substrate, sub_ss.str().c_str());
 }
 
+void Part::generateVacuumGraspPosition()
+{
+    //Create nozzle simulator
+    TopoDS_Shape nozzle = BRepPrimAPI_MakeCylinder(4, 1);
 
+    //Get the starting volume of the nozzle
+    double nozzle_full_volume = ShapeVolume(nozzle);
 
+    //gp_Pnt starting_nozzle_centroid = ShapeCentroid(nozzle);
 
+    gp_Pnt part_com = ShapeCenterOfMass(*shape_);
 
+    Standard_Real part_highest_point = ShapeHighestPoint(*shape_);
 
+    double largest_shape_axis = std::max(ShapeAxisSize(*shape_, 0), ShapeAxisSize(*shape_, 1));
 
 
+    double best_fit = 0;
+    int best_r = 0;
+    int best_th = 0;
 
-// void Part::translate(Vector translation)
-// {   
-//     translateMesh(mesh_, translation);
-// }
+    //Iterature over radius
+    for (int r = 0; r < largest_shape_axis; r ++)
+    {
+        //Iterate over angle
+        for (int th = 0; th < 360; th += 90)
+        {
+            //std::cout << "checking grasp at: " << r << " " << th << std::endl;
 
+            gp_Pnt new_nozzle_pos(part_com.X() + r * cos(th * 3.14159 / 180),
+                                part_com.Y() + r * sin(th * 3.14159 / 180),
+                                part_highest_point - 0.51);
 
-// bool Part::collide(std::shared_ptr<Part> otherPart)
-// {
-//     //AABB_tree tree1(faces(*mesh_).first, faces(*mesh_).second, *mesh_);
-//     AABB_tree tree2(faces(*(otherPart->getMesh())).first, faces(*(otherPart->getMesh())).second, *(otherPart->getMesh()));
+            TopoDS_Shape moved_nozzle = ShapeSetCentroid(nozzle, new_nozzle_pos);
 
-//     //tree1.accelerate_distance_queries();
-//     tree2.accelerate_distance_queries();
+            //Intersect the nozzle and the part
+            TopoDS_Shape intersection = ShapeIntersection(moved_nozzle, *shape_);
 
-//     // Iterate through the faces of one polyhedron
-//     for (auto f1 = mesh_->facets_begin(); f1 != mesh_->facets_end(); ++f1) {
-//         // Convert face into a triangle
-//         auto h = f1->halfedge();
-//         Triangle tri1(h->vertex()->point(), h->next()->vertex()->point(), h->next()->next()->vertex()->point());
+            if (intersection.IsNull())
+            {
+                continue;
+            }
 
-//         // Check if this triangle intersects with tree2
-//         if (tree2.do_intersect(tri1)) {
-//             return true;  // Collision detected
-//         }
-//     }
+            //Check the volume of the intersection
+            double intersection_volume = ShapeVolume(intersection);
 
-//     return false;  // No collision
-// }
+            double intersection_ratio = intersection_volume / nozzle_full_volume;
 
+            if (intersection_ratio > best_fit + 0.01)
+            {
+                best_fit = intersection_ratio;
+                best_r = r;
+                best_th = th;
+            }           
+        }
+    }
 
-// Point Part::createNegative(std::shared_ptr<MeshObject> substrate, std::string filename)
-// {
-//     std::cout << "Creating negative" << std::endl;
+    std::cout << "Intersection ratio: " << best_fit << std::endl;
 
-//     Point final_position(0, 0, 0);
+    TopoDS_Shape visual_nozzle = BRepPrimAPI_MakeCylinder(4, 8);
 
-//     // Convert Polyhedra to Nef Polyhedra
+    gp_Pnt visual_nozzle_pos(part_com.X() + best_r * cos(best_th * 3.14159 / 180),
+                            part_com.Y() + best_r * sin(best_th * 3.14159 / 180),
+                            part_highest_point - 0.51);
 
-//     if (substrate == nullptr)
-//     {
-//         std::cout << "substrate null!" << std::endl;
-//         return final_position;
-//     }
+    visual_nozzle = ShapeSetCentroid(visual_nozzle, visual_nozzle_pos);
 
-//     if (substrate->getMesh() == nullptr)
-//     {
-//         std::cout << "substrate mesh null!" << std::endl;
-//         return final_position;
-//     }
+    TopoDS_Compound compound;
+    BRep_Builder builder;
+    builder.MakeCompound(compound);
 
-//     //Copy the mesh and operate on the copy
-//     std::shared_ptr<Polyhedron> scaledMesh = std::make_shared<Polyhedron>(*mesh_);
+    builder.Add(compound, *shape_);
 
-//     //Determine scaling factor from desired clearance
-//     double clearance = 1;
+    builder.Add(compound, visual_nozzle);
 
-//     BoundingBox bbox = meshBoundingBox(scaledMesh);
+    BRepMesh_IncrementalMesh mesher(compound, 0.1);
 
-//     auto x_size = bbox.x_span();
+    StlAPI_Writer writer;
 
-//     auto y_size = bbox.y_span();
+    std::stringstream ss;
 
-//     auto z_size = bbox.z_span();
+    ss << name_ << "_vacuum_grasp.stl";
 
-//     auto target_x_size = x_size + clearance;
+    writer.Write(compound, ss.str().c_str());
 
-//     auto target_y_size = y_size + clearance;
-    
-//     auto target_z_size = z_size + clearance;
+    vacuum_grasp_position_ = gp_Pnt(best_r * cos(best_th * 3.14159 / 180), best_r * sin(best_th * 3.14159 / 180), part_highest_point - part_com.Z());
 
-//     auto x_scale_ratio = target_x_size / x_size;
+    std::cout << "Finished grasp checking" << std::endl;
+}
 
-//     auto y_scale_ratio = target_y_size / y_size;
+void Part::generatePPGGraspPosition()
+{
+    std::cout << "Generating PPG grasp" << std::endl;
 
-//     auto z_scale_ratio = target_z_size / z_size;
+    //Iterate through the faces of the part and get their normals
 
-//     std::cout << "Scaling ratios: " <<  x_scale_ratio << " " << y_scale_ratio << " " << z_scale_ratio << std::endl;
+    //Disregard normals that don't have close to zero value in z
+    //Check all remaining normals against one another to find pairs that align, that are close to the CoM, and that don't cause collisions
 
+    std::vector<gp_Pnt> centers;
+    std::vector<gp_Dir> normals;
 
-//     scaleMesh(scaledMesh, x_scale_ratio, y_scale_ratio, z_scale_ratio);   
-//                         //TODO we need to make the object orthogonally convex first! Maybe we just do this by hand for now
-//                         //TODO or maybe eve just convex? That might suffice for most objects
+    TopExp_Explorer faceExplorer(*shape_, TopAbs_FACE);
 
+    for (; faceExplorer.More(); faceExplorer.Next()) {
+        const TopoDS_Face& face = TopoDS::Face(faceExplorer.Current());
 
-//     //Find the lowest point of the substrate
-//     double substrate_lowest_z = meshLowestPoint(substrate->getMesh());
+        // Get surface from face
+        Handle(Geom_Surface) surface = BRep_Tool::Surface(face);
 
-//     //Find the lowest point of the part
-//     double part_lowest_z = meshLowestPoint(scaledMesh);
+        // Get parametric bounds of the face
+        Standard_Real u1, u2, v1, v2;
+        BRepTools::UVBounds(face, u1, u2, v1, v2);
 
-//     //Move the part so that it's lowest point is 2mm above the lowest point of the substrate
+        // Evaluate properties at the center of the parametric domain
+        Standard_Real uMid = (u1 + u2) / 2.0;
+        Standard_Real vMid = (v1 + v2) / 2.0;
 
-//     translateMesh(scaledMesh, Vector(0, 0, substrate_lowest_z + 2 - part_lowest_z));
+        // Use SLProps to get surface properties including normal
+        GeomLProp_SLProps props(surface, uMid, vMid, 1, Precision::Confusion());
 
-//     auto distance_moved = substrate_lowest_z + 2 - part_lowest_z;
+        if (props.IsNormalDefined()) {
+            gp_Pnt center = props.Value();
+            gp_Dir normal = props.Normal();
 
-//     //Now, loop
+            if (normal.Z() > 0.01 || normal.Z() < -0.01)
+                continue;
 
-//     int i = 0;
+            centers.push_back(center);
+            normals.push_back(normal);
 
-//     while (true)
-//     {
-//         std::cout << "Distance moved: " << distance_moved << std::endl;
+            //std::cout << "Face center: " << center.X() << ", " << center.Y() << ", " << center.Z() << std::endl;
+            //std::cout << "Face normal: " << normal.X() << ", " << normal.Y() << ", " << normal.Z() << std::endl;
+        }
+    }
 
-//         //Create the nefs and do the substraction
+    bool grasp_found = false;
 
-//         SurfaceMesh mesh;
-//         CGAL::copy_face_graph(*(substrate->getMesh()), mesh);
+    for (int a = 0; a < normals.size(); a++)
+    {
+        for (int b = 0; b < normals.size(); b++)
+        {
+            Standard_Real normal_normal_angle = normals[a].Angle(normals[b]);
 
-//         Nef_polyhedron nef_substrate(mesh);
+            //Check the the two normals are anti-aligned
+            if (normal_normal_angle < 0.65 * 3.14159)
+                continue;
 
-//         SurfaceMesh mesh2;
-//         CGAL::copy_face_graph(*scaledMesh, mesh2);
+            gp_Vec delta(centers[a], centers[b]);
 
-//         Nef_polyhedron nef_part(mesh2);
+            if (delta.Magnitude() < 1)
+                continue;
 
-//         if (!nef_substrate.is_simple()) std::cout << "Error: Nef_substrate not simple!" << std::endl;
-//         if (!nef_part.is_simple()) std::cout << "Error: Nef_part not simple!" << std::endl;
+            Standard_Real delta_normal_angle = gp_Vec(normals[b]).Angle(delta);
 
+            //Check if the normal and the delta are misaligned
+            if (delta_normal_angle > 0.35 * 3.14159)
+                continue;
 
-//         if (nef_substrate.is_empty()) std::cout << "Error: nef_substrate is empty!" << std::endl;
-//         if (nef_part.is_empty()) std::cout << "Error: nef_part is empty!" << std::endl;
+            //Check x y distance from center of delta to CoM
+            gp_Pnt delta_center = centers[a].Translated(0.5 * delta);
 
-//         // Perform subtraction (poly1 - poly2)
-//         Nef_polyhedron result = nef_substrate.difference(nef_part);
+            gp_Vec com_xy_distance(delta_center.X() - getCoM().X(), delta_center.Y() - getCoM().Y(), 0);
 
-//         result.regularization();  // Improves numerical stability
-//         result.simplify();        // Removes unnecessary small faces
+            if (com_xy_distance.Magnitude() > 5)
+                continue;
 
-//         // Convert back to Polyhedron
-//         std::shared_ptr<Polyhedron> cradle = std::shared_ptr<Polyhedron>(new Polyhedron());
-//         if (result.is_simple()) {
-//             result.convert_to_polyhedron(*cradle);
-//         } else {
-//             throw std::runtime_error("Resulting shape is not a valid polyhedron.");
-//         }
+            //Create padle models and check for collisions
+            TopoDS_Shape paddle_1 = BRepPrimAPI_MakeBox(10, 2, 10).Shape();
+            TopoDS_Shape paddle_2 = BRepPrimAPI_MakeBox(10, 2, 10).Shape();
 
+            //1st rotation
+            gp_Dir source_normal_1(0, 1, 0);
+            gp_Dir target_normal_1 = normals[a];
 
-//         //Check if there are any faces pointing downwards
-//         int downwards_faces = 0;
+            gp_Pnt source_point_1(5, 0, 5);
+            gp_Pnt target_point_1 = centers[a].Translated(3 * gp_Vec(normals[a]));
 
-//         for (auto facet = cradle->facets_begin(); facet != cradle->facets_end(); facet++)
-//         {
-//             Vector normal = CGAL::Polygon_mesh_processing::compute_face_normal(facet, *cradle);
+            gp_Vec rotation_axis_1;
 
-//             if (normal.z() < -0.001 && facetLowestPoint(facet).z() > substrate_lowest_z + 1) {  // Face is downward-facing
-//                 downwards_faces++;
-//             }
-//         }
+            if ((gp_Vec(source_normal_1) ^ gp_Vec(target_normal_1)).Z() > 0)
+                rotation_axis_1 = gp_Vec(0, 0, 1);
 
-//         std::cout << "Num downwards faces: " << downwards_faces << std::endl;
+            else
+                rotation_axis_1 = gp_Vec(0, 0, -1);
 
-//         // std::stringstream ss;
-        
-//         // ss << filename << "_partial_" << distance_moved << std::endl;
+            Standard_Real angle_1 = source_normal_1.Angle(target_normal_1); 
 
-//         // saveMesh(cradle, ss.str());
+            gp_Trsf rotation_1;
 
-//         //If there are no downward faces, save the mesh
-//         if (downwards_faces == 0)
-//         {
-//             //Save mesh
-//             saveMesh(cradle, filename);
+            gp_Ax1 axis_1(source_point_1, gp_Dir(rotation_axis_1));  // rotate around axis passing through source point
+            rotation_1.SetRotation(axis_1, angle_1);
 
-//             std::cout << std::endl << std::endl << "SAVED AT " << distance_moved << std::endl << std::endl;
+            BRepBuilderAPI_Transform rotTransformer_1(rotation_1);
+            rotTransformer_1.Perform(paddle_1);
+            paddle_1 = rotTransformer_1.Shape();
 
-//             break;
-//         }
+            gp_Pnt rotated_source_point_1 = source_point_1.Transformed(rotation_1);  // new location of P1 after rotation TODO requierd?
 
-//         translateMesh(scaledMesh, Vector(0, 0, 0.1));
+            gp_Vec translation_vector_1(rotated_source_point_1, target_point_1);
 
-//         distance_moved += 0.1;
-//     }
+            gp_Trsf translation_1;
+            translation_1.SetTranslation(translation_vector_1);
 
-//     final_position += Vector(0, 0, distance_moved); 
+            BRepBuilderAPI_Transform transTransformer_1(translation_1);
+            transTransformer_1.Perform(paddle_1);
+            paddle_1 = transTransformer_1.Shape();
 
-//     return final_position;
-// }
+            //Second rotation
+            gp_Dir source_normal_2(0, 1, 0);
+            gp_Dir target_normal_2 = normals[b];
+
+            gp_Pnt source_point_2(5, 0, 5);
+            gp_Pnt target_point_2 = centers[b].Translated(3 * gp_Vec(normals[b]));
+
+            gp_Vec rotation_axis_2;
+
+            if ((gp_Vec(source_normal_2) ^ gp_Vec(target_normal_2)).Z() > 0)
+                rotation_axis_2 = gp_Vec(0, 0, 1);
+
+            else
+                rotation_axis_2 = gp_Vec(0, 0, -1);
+
+            Standard_Real angle_2 = source_normal_2.Angle(target_normal_2); 
+
+            gp_Trsf rotation_2;
+
+            gp_Ax1 axis_2(source_point_2, gp_Dir(rotation_axis_2));  // rotate around axis passing through source point
+            rotation_2.SetRotation(axis_2, angle_2);
+
+            BRepBuilderAPI_Transform rotTransformer_2(rotation_2);
+            rotTransformer_2.Perform(paddle_2);
+            paddle_2 = rotTransformer_2.Shape();
+
+            gp_Pnt rotated_source_point_2 = source_point_2.Transformed(rotation_2);  // new location of P2 after rotation TODO requierd?
+
+            gp_Vec translation_vector_2(rotated_source_point_2, target_point_2);
+
+            gp_Trsf translation_2;
+            translation_2.SetTranslation(translation_vector_2);
+
+            BRepBuilderAPI_Transform transTransformer_2(translation_2);
+            transTransformer_2.Perform(paddle_2);
+            paddle_2 = transTransformer_2.Shape();
+
+            //Intersect the paddles and the part
+            TopoDS_Shape intersection_1 = ShapeIntersection(paddle_1, *shape_);
+
+            TopoDS_Shape intersection_2 = ShapeIntersection(paddle_2, *shape_);
+
+            if ((!intersection_1.IsNull() && ShapeVolume(intersection_1) > 0.01) || (!intersection_2.IsNull() && ShapeVolume(intersection_2) > 0.01))
+            {   
+                //Collision between paddles and part, continue
+
+                continue;
+            }
+
+            TopoDS_Compound compound;
+            BRep_Builder builder;
+            builder.MakeCompound(compound);
+
+            builder.Add(compound, *shape_);
+
+            builder.Add(compound, paddle_1);
+
+            builder.Add(compound, paddle_2);
+
+            BRepMesh_IncrementalMesh mesher(compound, 0.1);
+
+            StlAPI_Writer writer;
+
+            std::stringstream ss;
+
+            ss << name_ << "_ppg_grasp_" << a << "_" << b << ".stl";
+
+            writer.Write(compound, ss.str().c_str());
+
+
+
+            std::cout << std::endl << "GRASP: " << std::endl;
+            std::cout << "Face A center: " << centers[a].X() << ", " << centers[a].Y() << ", " << centers[a].Z() << std::endl;
+            std::cout << "Face A normal: " << normals[a].X() << ", " << normals[a].Y() << ", " << normals[a].Z() << std::endl;
+            std::cout << "Face B center: " << centers[b].X() << ", " << centers[b].Y() << ", " << centers[b].Z() << std::endl;
+            std::cout << "Face B normal: " << normals[b].X() << ", " << normals[b].Y() << ", " << normals[b].Z() << std::endl << std::endl;;
+
+
+        }
+    }
+
+    //TODO need to check collisions and 'size' of grasp
+}

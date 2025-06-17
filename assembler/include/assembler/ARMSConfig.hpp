@@ -1,9 +1,13 @@
 #ifndef ARMS_CONFIG_HPP
 #define ARMS_CONFIG_HPP
 
+#include "assembler/MeshFunctions.hpp"
+
 const extern double PARTS_BED_HEIGHT;
 
-const extern double PARTS_BAY_POSITIONS[4][2];
+const extern std::vector<std::vector<gp_Pnt>> PARTS_BAY_POSITIONS;
+
+const extern std::vector<int> BAY_SIZES;
 
 const extern double PRINT_BED_CENTER[2];
 

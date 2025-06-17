@@ -13,7 +13,7 @@
 
 #include "yaml-cpp/yaml.h"
 
-// #include <ament_index_cpp/get_package_share_directory.hpp>
+//#include <ament_index_cpp/get_package_share_directory.hpp>
 
 #include <iostream>
 #include <fstream>
@@ -33,12 +33,25 @@ Assembler::Assembler()
     // std::cout << "Input path: " << input_path_ << std::endl;
 
     std::shared_ptr<Assembly> assembly = std::shared_ptr<Assembly>(new Assembly());
+
+    
+    for (std::vector<gp_Pnt> bays : PARTS_BAY_POSITIONS)
+    {
+        bay_occupancy_.push_back(std::vector<bool>());
+
+        for (gp_Pnt bay_position : bays)
+        {
+            bay_occupancy_.back().push_back(false);
+        }
+    }
 }
 
 void Assembler::generateAssemblySequence() 
 {
     if (target_assembly_ == nullptr)
         return;
+
+    generateGrasps();
 
     generateInitialAssembly();
 
@@ -113,6 +126,7 @@ void Assembler::generateAssemblySequence()
         }
     }
 
+    
     //If initial (or target) assembly has no internal parts, set target_assembly position to middle of bed
     else
     {
@@ -156,10 +170,12 @@ void Assembler::generateAssemblySequence()
     //Designate internal parts
     for (std::shared_ptr<Part> initial_part : initial_parts)
     {
-        if (!initial_part->getType() == Part::INTERNAL)
+        if (initial_part->getType() != Part::INTERNAL)
             continue;
 
         std::shared_ptr<Part> target_part = target_assembly_->getPartById(initial_part->getId());
+
+        //TODO need to add grasps for internal objects
 
         gp_Pnt pick_position(initial_part->getCentroid().X(), 
                              initial_part->getCentroid().Y(),
@@ -185,26 +201,42 @@ void Assembler::generateAssemblySequence()
     //Designate external parts
     for (std::shared_ptr<Part> initial_part : initial_parts)
     {        
-        if (!initial_part->getType() == Part::EXTERNAL)
+        if (initial_part->getType() != Part::EXTERNAL)
             continue;
 
         std::shared_ptr<Part> target_part = target_assembly_->getPartById(initial_part->getId());
 
-        gp_Pnt pick_position(initial_part->getCentroid().X(), 
-                                initial_part->getCentroid().Y(),
-                                initial_part->getHighestPoint());
+        gp_Pnt pick_position = SumPoints(initial_part->getCoM(), initial_part->getVacuumGrasp());
 
-        gp_Pnt place_position(target_part->getCentroid().X(), 
-                                target_part->getCentroid().Y(),
-                                target_part->getHighestPoint());
+        gp_Pnt place_position = SumPoints(target_part->getCoM(), target_part->getVacuumGrasp());
 
         YAML::Node designate_part_command;
         designate_part_command["command-type"] = "DESIGNATE_EXTERNAL_PART";
         designate_part_command["command-properties"]["part-id"] = initial_part->getId();
         designate_part_command["command-properties"]["part-pick-height"] = pick_position.Z(); //This is the height from 0, accounting for the cradle etc TODO
         designate_part_command["command-properties"]["part-place-height"] = place_position.Z(); //This is the height from 0, accounting for the cradle etc
-        designate_part_command["command-properties"]["part-pick-pos-x"] = 0;   //TODO
-        designate_part_command["command-properties"]["part-pick-pos-y"] = 0;   //TODO
+        designate_part_command["command-properties"]["part-pick-pos-x"] = pick_position.X();
+        designate_part_command["command-properties"]["part-pick-pos-y"] = pick_position.Y();
+        designate_part_command["command-properties"]["part-place-pos-x"] = place_position.X();
+        designate_part_command["command-properties"]["part-place-pos-y"] = place_position.Y();
+
+        commands.push_back(designate_part_command);
+    }
+
+    //Designate screws
+    for (std::shared_ptr<Part> initial_part : initial_parts)
+    {
+        if (initial_part->getType() != Part::SCREW)
+            continue;
+
+        std::shared_ptr<Part> target_part = target_assembly_->getPartById(initial_part->getId());
+
+        gp_Pnt place_position(target_part->getCoM().X(), target_part->getCoM().Y(), target_part->getHighestPoint());
+
+        YAML::Node designate_part_command;
+        designate_part_command["command-type"] = "DESIGNATE_SCREW";
+        designate_part_command["command-properties"]["part-id"] = initial_part->getId();
+        designate_part_command["command-properties"]["part-place-height"] = place_position.Z();
         designate_part_command["command-properties"]["part-place-pos-x"] = place_position.X();
         designate_part_command["command-properties"]["part-place-pos-y"] = place_position.Y();
 
@@ -236,7 +268,9 @@ void Assembler::generateAssemblySequence()
     {
         std::cout << "Adding PLACE_PART command" << std::endl;
 
-        std::cout << "Part type: " << initial_assembly_->getPartById(part_id)->getType() << std::endl;
+        Part::PART_TYPE part_type = initial_assembly_->getPartById(part_id)->getType();
+
+        std::cout << "Part type: " << part_type << std::endl;
 
         //Do nothing with the base object if it's internal  //TODO janky
         if (part_id == path[1]->assembly_->getPartIds()[0] && path[1]->assembly_->getParts()[0]->getType() == Part::INTERNAL)
@@ -244,7 +278,12 @@ void Assembler::generateAssemblySequence()
 
         YAML::Node place_part_command;
 
-        place_part_command["command-type"] = "PLACE_PART";
+        if (part_type == Part::SCREW)
+            place_part_command["command-type"] = "PLACE_SCREW";
+
+        else
+            place_part_command["command-type"] = "PLACE_PART";
+
         place_part_command["command-properties"]["part-id"] = part_id;
         
         commands.push_back(place_part_command);
@@ -263,7 +302,7 @@ bool Assembler::arrangeInternalParts()
 {
     double currentY = PRINT_BED_BOTTOM_LEFT[1];
 
-    double currentX = PRINT_BED_BOTTOM_LEFT[0];
+    double currentX = PRINT_BED_TOP_RIGHT[0];
 
     double nextY = PRINT_BED_BOTTOM_LEFT[1];
 
@@ -276,9 +315,9 @@ bool Assembler::arrangeInternalParts()
         {
             TopoDS_Shape shape = *part->getShape();
 
-            gp_Pnt part_position(currentX + ShapeAxisSize(shape, 0) / 2, currentY + ShapeAxisSize(shape, 1) / 2, ShapeAxisSize(shape, 2) / 2);
+            gp_Pnt part_position(currentX - ShapeAxisSize(shape, 0) / 2, currentY + ShapeAxisSize(shape, 1) / 2, ShapeAxisSize(shape, 2) / 2);
 
-            double nextX = currentX + ShapeAxisSize(shape, 0) + PRINT_MIN_SPACING;
+            double nextX = currentX - ShapeAxisSize(shape, 0) - PRINT_MIN_SPACING;
 
             double topY = currentY + ShapeAxisSize(shape, 1) + PRINT_MIN_SPACING;
 
@@ -291,11 +330,11 @@ bool Assembler::arrangeInternalParts()
                 return false;
             }
 
-            else if (nextX > PRINT_BED_TOP_RIGHT[0])
+            else if (nextX < PRINT_BED_BOTTOM_LEFT[0])
             {
                 //Start a new y layer, try again with this part
                 currentY = nextY;
-                currentX = PRINT_BED_BOTTOM_LEFT[0];
+                currentX = PRINT_BED_TOP_RIGHT[0];
 
                 continue;
             }
@@ -375,6 +414,21 @@ void Assembler::generateSlicerGcode()
         if (line == "M104 S0 ; turn off temperature")
             break;
     }
+
+    //Iterate through gcode in reverse and delete up to and including the END_PRINT macro
+    for (int i = slicer_gcode_.size() - 1; i >= 0; i--)
+    {
+        if (slicer_gcode_[i].find("END_PRINT") != std::string::npos)
+        {
+            slicer_gcode_.pop_back();
+            break;   
+        }
+
+        else
+        {
+            slicer_gcode_.pop_back();
+        }
+    }
 }
 
 
@@ -408,7 +462,16 @@ std::vector<std::shared_ptr<AssemblyNode>> Assembler::breadthFirstZAssembly()
     {
         std::shared_ptr<AssemblyNode> current_node = queue.front();
 
-        std::cout << "Current node: " << current_node->id_ << std::endl;
+        std::cout << std::endl << std::endl << "Current node: " << current_node->id_ << std::endl;
+
+        for (std::shared_ptr<Part> part : current_node->assembly_->getParts())
+            std::cout << part->getId() << std::endl;
+
+        std::stringstream ss;
+
+        ss << "node_" << current_node->id_ << ".stl";
+
+        current_node->assembly_->saveAsSTL(ss.str().c_str());
  
         queue.pop();
 
@@ -420,13 +483,13 @@ std::vector<std::shared_ptr<AssemblyNode>> Assembler::breadthFirstZAssembly()
 
         for (std::shared_ptr<AssemblyNode> neighbour : neighbours)
         {
-            std::cout << "neighbour: " << neighbour->id_ << std::endl; 
+            //std::cout << "neighbour: " << neighbour->id_ << std::endl; 
 
             //If neighbour has already been visited, move on
             if (visited_nodes.find(neighbour) != visited_nodes.end())
                 continue;
 
-            std::cout << "not visited" << std::endl;
+            //std::cout << "not visited" << std::endl;
 
             visited_nodes.emplace(neighbour);
 
@@ -484,18 +547,26 @@ std::vector<std::shared_ptr<AssemblyNode>> Assembler::findNodeNeighbours(std::sh
     // //Try to move the part vertically over 10cm
     // //Every 0.1cm check collisions with every other part
     // //If no collisions take place, create a new assemblynode with this part removed and add it to neighbours list
-    float step_size = 0.1f;
+    float step_size = 1.0f;
 
 
     for (std::shared_ptr<Part> part : parts)
     {
         bool collides = false;
 
-        int num_steps = 0;
+        float step_distance = 0;
 
-        for (; num_steps != 100; ++num_steps)
+        for (int num_steps = 0; num_steps <= 5; ++num_steps)
         {   
+            //TODO for now assume that bolts don't collide. This needs to be handled correctly
+            if (part->getType() == Part::SCREW)
+                break;
+
             part->translate(gp_Vec(0, 0, step_size));
+
+            step_distance += step_size;
+
+            std::cout << "stepping!" << std::endl;
 
             for (std::shared_ptr<Part> otherPart : parts)
             {
@@ -503,11 +574,11 @@ std::vector<std::shared_ptr<AssemblyNode>> Assembler::findNodeNeighbours(std::sh
                 if (otherPart->getId() == part->getId())
                     continue;
 
-                std::cout << "Checking collision: " << part->getId() << " and "  << otherPart->getId() << std::endl;
+                //std::cout << "Checking collision: " << part->getId() << " and "  << otherPart->getId() << std::endl;
 
                 if (part->collide(otherPart))
                 {
-                    std::cout << "Collision" << std::endl;
+                    //std::cout << "Collision" << std::endl;
 
                     collides = true;
                     break;
@@ -518,13 +589,19 @@ std::vector<std::shared_ptr<AssemblyNode>> Assembler::findNodeNeighbours(std::sh
                 break;
         }
 
+        //TODO for now assume that bolts don't collide. This needs to be handled correctly
+        if (part->getType() == Part::SCREW)
+            collides = false;
+
+        //std::cout << "Moved " << num_steps << " steps" << std::endl;
+
         //Put the part back where it was
-        part->translate(gp_Vec(0, 0, -num_steps * step_size));
+        part->translate(gp_Vec(0, 0, -step_distance));
 
         if (collides)
             continue;
 
-        std::cout << std::endl;
+        //std::cout << std::endl;
 
         //Create new assembly node
         std::shared_ptr<Assembly> neighbour_assembly = std::shared_ptr<Assembly>(new Assembly());
@@ -621,6 +698,31 @@ void Assembler::generateNegatives()
 
             std::cout << "Creating part negative" << std::endl;
 
-        part->createNegative();
+        part->createNegativeAndPositionPart(bay_occupancy_);
+    }
+}
+
+void Assembler::generateGrasps()
+{
+    std::cout << "Generating grasps" << std::endl;
+
+    // for (std::shared_ptr<Part> part : initial_assembly_->getParts())
+    // {
+    //     //Only create negatives or external parts
+    //     if (part->getType() != Part::EXTERNAL)
+    //         continue;
+
+    //     part->generateVacuumGraspPosition();
+    // }
+
+    for (std::shared_ptr<Part> part : target_assembly_->getParts())
+    {
+        part->generatePPGGraspPosition();
+
+        //Only create negatives or external parts
+        if (part->getType() != Part::EXTERNAL)
+            continue;
+
+        part->generateVacuumGraspPosition();
     }
 }

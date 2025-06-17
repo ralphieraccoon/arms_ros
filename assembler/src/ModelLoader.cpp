@@ -78,7 +78,7 @@ void ModelLoader::RecurrentAddPart(const TDF_Label& label, const Handle(XCAFDoc_
     else if (name.find("external") != std::string::npos)
         type = Part::EXTERNAL;
 
-    else if (name.find("screw") != std::string::npos)
+    else if (name.find("screw") != std::string::npos || name.find("bolt") != std::string::npos)
         type = Part::SCREW;
 
     else
