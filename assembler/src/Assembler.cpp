@@ -15,6 +15,8 @@
 
 //#include <ament_index_cpp/get_package_share_directory.hpp>
 
+#include "assembler/Config.hpp"
+
 #include <iostream>
 #include <fstream>
 #include <queue>
@@ -291,7 +293,10 @@ void Assembler::generateAssemblySequence()
 
     root["commands"] = commands;
 
-    std::ofstream fout(Assembler::output_path_ + "assembly_plan.yaml");
+    std::ofstream fout(OUTPUT_DIR + "assembly_plan.yaml");
+
+
+    std::cout << "Output path: " << OUTPUT_DIR + "assembly_plan.yaml" << std::endl;
 
     fout << root;
 
