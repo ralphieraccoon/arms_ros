@@ -1,8 +1,9 @@
 #include "assembler/ModelLoader.hpp"
 #include "assembler/Assembly.hpp"
 
-
 std::shared_ptr<Assembly> ModelLoader::loadModel(const std::string& filename) {
+
+    next_id_ = 0;
 
     //Create new assembly
     std::shared_ptr<Assembly> assembly = std::shared_ptr<Assembly>(new Assembly());

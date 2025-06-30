@@ -1,12 +1,10 @@
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_action/rclcpp_action.hpp>
 #include <rclcpp_components/register_node_macro.hpp>
-#include <visualization_msgs/msg/marker.hpp>
 
 #include "assembler/Assembler.hpp"
 #include "assembler/Assembly.hpp"
 #include "assembler/ModelLoader.hpp"
-#include "assembler/Part.hpp"
 
 #include "assembler_msgs/action/process_model.hpp"
 
@@ -19,8 +17,7 @@ public:
   ASSEMBLER_NODE_CPP_PUBLIC
   explicit AssemblerNode(
       const rclcpp::NodeOptions &options = rclcpp::NodeOptions())
-      : Node("assembler_action_server", options), loader_(std::make_shared<ModelLoader>()),
-        assembler_(std::make_shared<Assembler>()) {
+      : Node("assembler_action_server", options), assembler_(std::make_shared<Assembler>()) {
     RCLCPP_INFO(this->get_logger(), "Model loader node starting...");
 
     auto process_model_handle_goal =
@@ -67,22 +64,14 @@ private:
     auto result =
         std::make_shared<assembler_msgs::action::ProcessModel::Result>();
 
-    std::shared_ptr<Assembly> target_assembly =
-        loader_->loadModel(goal->model_file);
+    std::shared_ptr<Assembly> target_assembly = ModelLoader::loadModel(goal->model_file);
 
     assembler_->setTargetAssembly(target_assembly);
 
     assembler_->generateAssemblySequence();
   }
 
-  void publishMesh(std::string inputPath) {
-
-    std::shared_ptr<Assembly> assembly =
-        loader_->loadModel(inputPath + "MotorMountTest v2.step");
-  }
-
   std::shared_ptr<Assembler> assembler_;
-  std::shared_ptr<ModelLoader> loader_;
 
   rclcpp_action::Server<assembler_msgs::action::ProcessModel>::SharedPtr
       process_model_action_server_;
