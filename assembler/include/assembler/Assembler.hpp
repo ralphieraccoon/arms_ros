@@ -14,8 +14,6 @@ class Assembly;
 
 class AssemblyNode;
 
-class MeshObject;
-
 class Assembler {
 
 public:
@@ -24,8 +22,6 @@ public:
     void generateAssemblySequence();
 
     void setTargetAssembly(std::shared_ptr<Assembly> target_assembly) { target_assembly_ = target_assembly; }
-
-    void setSubstrate(std::shared_ptr<MeshObject> substrate) { negative_substrate_ = substrate; }
 
 private:
 
@@ -52,8 +48,6 @@ private:
     std::shared_ptr<Assembly> initial_assembly_;
 
     std::shared_ptr<Assembly> target_assembly_;
-
-    std::shared_ptr<MeshObject> negative_substrate_;
 
     std::string output_path_;
     std::string input_path_;

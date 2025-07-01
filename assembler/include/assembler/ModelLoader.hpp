@@ -1,13 +1,9 @@
 #ifndef MODEL_LOADER_HPP
 #define MODEL_LOADER_HPP
 
-#include <memory>
+#include "assembler/MeshFunctions.hpp"
 
-#include <boost/property_map/property_map.hpp>
-
-#include "assembler/Part.hpp"
-
-class MeshObject;
+class Part;
 
 class Assembly;
 
@@ -15,11 +11,13 @@ class ModelLoader {
 
     public:
 
+        //Load a .step file with OpenCascade and generate a target assembly
         static std::shared_ptr<Assembly> loadModel(const std::string& filename);
 
     private:
 
-        static std::vector<std::shared_ptr<Part>> loadSTEP(const std::string& filename);
+        //Load the individual parts from the .step file
+        static std::vector<std::shared_ptr<Part>> loadParts(const std::string& filename);
 
         static std::string GetShapeName(const TDF_Label& label);
 

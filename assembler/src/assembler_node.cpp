@@ -69,6 +69,8 @@ private:
     assembler_->setTargetAssembly(target_assembly);
 
     assembler_->generateAssemblySequence();
+
+    goal_handle->succeed(result);
   }
 
   std::shared_ptr<Assembler> assembler_;

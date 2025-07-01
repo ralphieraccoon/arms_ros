@@ -33,6 +33,9 @@
 #include <cctype>
 #include <string>
 
+#include <memory>
+#include <vector>
+
 #include <BRepPrimAPI_MakeCylinder.hxx>
 
 #include <BRepAlgoAPI_Common.hxx>
