@@ -23,8 +23,6 @@ std::shared_ptr<Assembly> ModelLoader::loadModel(const std::string& filename) {
     for (std::shared_ptr<Part> part : parts)
         assembly->addPart(part);
 
-    assembly->saveAsSTL("target_assembly.stl");
-
     return assembly;
 }
 

@@ -530,7 +530,7 @@ void Part::generatePPGGraspPosition()
 
             std::stringstream ss;
 
-            ss << name_ << "_ppg_grasp_" << a << "_" << b << ".stl";
+            ss << WORKING_DIR << name_ << "_ppg_grasp_" << a << "_" << b << ".stl";
 
             writer.Write(compound, ss.str().c_str());
 

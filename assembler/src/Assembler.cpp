@@ -374,13 +374,17 @@ void Assembler::generateSlicerGcode()
         if (part->getType() != Part::INTERNAL)
             continue;
 
-        std::stringstream ss;
+        std::stringstream filename_ss;
 
-        ss << "internal_part_" << i << ".stl";
+        filename_ss << WORKING_DIR << "internal_part_" << i << ".stl";
 
-        part->saveShape(ss.str());
+        std::stringstream filename_local_ss;
 
-        filenames.push_back(ss.str());
+        filename_local_ss << "internal_part_" << i << ".stl";
+
+        part->saveShape(filename_ss.str());
+
+        filenames.push_back(filename_local_ss.str());
 
         i ++;        
     }
@@ -389,10 +393,12 @@ void Assembler::generateSlicerGcode()
 
     std::stringstream command_ss;
 
-    command_ss << "prusa-slicer --export-gcode --dont-arrange --merge --output assembler.gcode --load arms_prusa_config.ini";
+    command_ss << "(cd " << WORKING_DIR << " && " << "prusa-slicer --export-gcode --dont-arrange --merge --output assembler.gcode --load arms_prusa_config.ini";
 
     for (std::string filename : filenames)
         command_ss << " " << filename;
+
+    command_ss << ")";
 
     std::cout << "Slicing command: " << command_ss.str() << std::endl;
 
@@ -404,8 +410,12 @@ void Assembler::generateSlicerGcode()
         std::cerr << "Error: PrusaSlicer execution failed!" << std::endl;
     }
 
+    std::stringstream gcode_ss;
+
+    gcode_ss << WORKING_DIR << "assembler.gcode";
+
     //Load the GCode that Prusa writes
-    std::ifstream gcodeFile("assembler.gcode");
+    std::ifstream gcodeFile(gcode_ss.str());
     if (!gcodeFile) {
         std::cerr << "Error: Cannot open G-code file." << std::endl;
         return;
@@ -474,7 +484,7 @@ std::vector<std::shared_ptr<AssemblyNode>> Assembler::breadthFirstZAssembly()
 
         std::stringstream ss;
 
-        ss << "node_" << current_node->id_ << ".stl";
+        ss << WORKING_DIR << "node_" << current_node->id_ << ".stl";
 
         current_node->assembly_->saveAsSTL(ss.str().c_str());
  
@@ -532,7 +542,7 @@ std::vector<std::shared_ptr<AssemblyNode>> Assembler::breadthFirstZAssembly()
     {
         std::stringstream ss;
 
-        ss << "assembly_node_" << n << ".stl";
+        ss << WORKING_DIR << "assembly_node_" << n << ".stl";
 
         node->assembly_->saveAsSTL(ss.str());
 
