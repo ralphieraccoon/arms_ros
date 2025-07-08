@@ -4,89 +4,36 @@
 
 #include <cmath>
 
+/*  Input: ptr to another part
+
+    Output: collision between parts yes/no
+
+    First check the bounding boxes of the two parts to see if they intersect. If they do, use an OCC function
+    to check the closest distance between them
+*/
 bool Part::collide(std::shared_ptr<Part> otherPart)
 {
-    //Check bounding boxes first. If they don't intersect then parts don't collide. Else continue testing
+    float collisionThreshold = 0.01;                                
     Bnd_Box this_bb = ShapeBoundingBox(*shape_);
     Bnd_Box other_bb = ShapeBoundingBox(*(otherPart->getShape()));
-
-
-    Standard_Real xmin_this, ymin_this, zmin_this, xmax_this, ymax_this, zmax_this;
-
-    this_bb.Get(xmin_this, ymin_this, zmin_this, xmax_this, ymax_this, zmax_this);
-
-
-
-    Standard_Real xmin_other, ymin_other, zmin_other, xmax_other, ymax_other, zmax_other;
-
-    other_bb.Get(xmin_other, ymin_other, zmin_other, xmax_other, ymax_other, zmax_other);
-
-    // std::cout << "this_bb - x: " << xmin_this << " - " << xmax_this
-    //           << " y: " << ymin_this << " - " << ymax_this
-    //           << " z: " << zmin_this << " - " << zmax_this << std::endl; 
-
-    // std::cout << "other_bb - x: " << xmin_other << " - " << xmax_other
-    //           << " y: " << ymin_other << " - " << ymax_other
-    //           << " z: " << zmin_other << " - " << zmax_other << std::endl;
-
-
 
     if (this_bb.IsOut(other_bb))
         return false;
 
-    std::cout << "bbox overlap" << std::endl;
-
-
-
-
-    //TODO need to speed this up
-    //Could try a completely different approach
-    //Could also first check if bounding boxes intersect
-    //Also don't need to go as far as you're going - only need to step until part bb has cleared assembly bb
-
-
-    // BRepAlgoAPI_Common common(*shape_, *(otherPart->getShape()));
-    // common.Build();
-
-    // if (common.IsDone()) {
-        
-    //     std::stringstream ss;
-
-    //     ss << "collision_" << id_ << " " << otherPart->getId() << ".stl";
-
-    //     SaveShapeAsSTL(common.Shape(), ss.str().c_str());
-
-    //     if (!common.Shape().IsNull())
-    //     {
-    //         std::cout << "common collision" << std::endl;
-
-    //         return true;
-    //     }
-
-    //     else
-    //     {
-    //         std::cout << "no common collision" << std::endl;
-
-    //         return false;
-    //     }
-    // }
-
-
     BRepExtrema_DistShapeShape distCalc(*shape_, *(otherPart->getShape()));
-    if (distCalc.IsDone()) {
+    
+    if (!distCalc.IsDone()) 
+    {
+        std::cerr << "Collision can't be calculated" << std::endl;
 
-        std::cout << "Intersection: " << distCalc.Value() << std::endl;
-
-        if (distCalc.Value() < 0.01)
-            return true;
-        
-        else
-            return false;
+        return true;  // Distance can't be computed - assume collision
     }
 
-    std::cerr << "Collision can't be calculated" << std::endl;
-
-    return false;  // If the distance couldn't be computed
+    if (distCalc.Value() < collisionThreshold)
+        return true;
+    
+    else
+        return false;
 }
 
 void Part::createNegativeAndPositionPart(std::vector<std::vector<bool>>& occupancy)
@@ -141,7 +88,7 @@ void Part::createNegativeAndPositionPart(std::vector<std::vector<bool>>& occupan
 
     //Position the substrate in the parts bay
 
-    substrate = ShapeSetCentroid(substrate, gp_Pnt(PARTS_BAY_POSITIONS[size_index][bay_index].X(), PARTS_BAY_POSITIONS[size_index][bay_index].Y(), (substrate_depth / 2) - 3));
+    substrate = ShapeSetCentroid(substrate, gp_Pnt(PARTS_BAY_POSITIONS[size_index][bay_index].X(), PARTS_BAY_POSITIONS[size_index][bay_index].Y(), (substrate_depth / 2)));
 
     //Get the substrate centroid
     gp_Pnt substrate_centroid = ShapeCentroid(substrate);

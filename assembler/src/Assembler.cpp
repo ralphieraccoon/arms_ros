@@ -416,14 +416,14 @@ void Assembler::generateSlicerGcode()
     {
         slicer_gcode_.push_back(line);
 
-        if (line == "M104 S0 ; turn off temperature")
-            break;
+        // if (line == "; Filament-specific end gcode")
+        //     break;
     }
 
     //Iterate through gcode in reverse and delete up to and including the END_PRINT macro
     for (int i = slicer_gcode_.size() - 1; i >= 0; i--)
     {
-        if (slicer_gcode_[i].find("END_PRINT") != std::string::npos)
+        if (slicer_gcode_[i] == "END_PRINT")
         {
             slicer_gcode_.pop_back();
             break;   
@@ -722,7 +722,7 @@ void Assembler::generateGrasps()
 
     for (std::shared_ptr<Part> part : target_assembly_->getParts())
     {
-        part->generatePPGGraspPosition();
+        //part->generatePPGGraspPosition();
 
         //Only create negatives or external parts
         if (part->getType() != Part::EXTERNAL)

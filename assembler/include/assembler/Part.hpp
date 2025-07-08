@@ -1,10 +1,7 @@
 #ifndef PART_HPP
 #define PART_HPP
 
-#include <fstream>
-
 #include "assembler/MeshFunctions.hpp"
-
 
 class Part
 {
@@ -19,14 +16,14 @@ public:
     
     Part(std::shared_ptr<TopoDS_Shape> shape, PART_TYPE type, size_t id, std::string name) : shape_(shape), type_(type), id_(id), name_(name) {}
 
-    Part() {}
+    Part() = default;
 
     //Copy constructor
     Part(const Part& other) : shape_(std::make_shared<TopoDS_Shape>(*other.shape_)), id_(other.id_), type_(other.type_), name_(other.name_), vacuum_grasp_position_(other.vacuum_grasp_position_) {}
 
-    // Deep Copy Function (returns a shared_ptr to the new Part)
+    // Deep copy
     std::shared_ptr<Part> clone() const {
-        return std::make_shared<Part>(*this);  // Uses copy constructor
+        return std::make_shared<Part>(*this); 
     }
 
     void translate(gp_Vec translation) {shape_ = std::make_shared<TopoDS_Shape>(TranslateShape(*shape_, translation));}

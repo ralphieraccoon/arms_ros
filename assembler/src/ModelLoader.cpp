@@ -4,6 +4,9 @@
 
 #include "assembler/Assembly.hpp"
 
+
+int ModelLoader::next_id_ = 0;
+
 /*  Input: string filepath of .step file
 
     Output: target assembly to be assembled
