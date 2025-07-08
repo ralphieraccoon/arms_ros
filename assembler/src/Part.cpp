@@ -2,6 +2,8 @@
 
 #include "assembler/ARMSConfig.hpp"
 
+#include "assembler/Config.hpp"
+
 #include <cmath>
 
 /*  Input: ptr to another part
@@ -36,29 +38,29 @@ bool Part::collide(std::shared_ptr<Part> otherPart)
         return false;
 }
 
+/*  Input: occupancy matrix for the parts bays
+
+    Creates a substrate of appropriate size and positions it in the parts bay. Positions the part within the substrate and
+    creates a negative. Saves a .stl copy of the negative.
+*/
 void Part::createNegativeAndPositionPart(std::vector<std::vector<bool>>& occupancy)
 {
-
-    //Evaluate the size of the part and choose a suitable substrate size (and therefore bay position)
-    
+    double substrate_depth = 6;   
+    int bay_size_index = 0;
+    int bay_index = -1;                                 //The bay index for a given size
     Standard_Real x_size = ShapeAxisSize(*shape_, 0);
-
     Standard_Real y_size = ShapeAxisSize(*shape_, 1);
 
-    std::cout << "Part width: " << x_size << std::endl;
-
-    std::cout << "Part height: " << y_size << std::endl;
-
-    int size_index = 0;
-
+    //Select correct bay size depending on size of part
+    
     if (x_size > 38 || y_size > 38)
     {
-        size_index = 1;
+        bay_size_index = 1;
     }
 
-    double substrate_depth = 6;
+    //Create the substrate and add a notch to the corner to indicate orientation
 
-    TopoDS_Shape substrate = BRepPrimAPI_MakeBox(BAY_SIZES[size_index], BAY_SIZES[size_index], substrate_depth).Shape();    //TODO: box shape depends on part
+    TopoDS_Shape substrate = BRepPrimAPI_MakeBox(BAY_SIZES[bay_size_index], BAY_SIZES[bay_size_index], substrate_depth).Shape();    //TODO: box shape depends on part
 
     TopoDS_Shape notch = BRepPrimAPI_MakeCylinder(3, 2).Shape();
 
@@ -66,12 +68,11 @@ void Part::createNegativeAndPositionPart(std::vector<std::vector<bool>>& occupan
 
     substrate = BRepAlgoAPI_Cut(substrate, notch);
 
-    //Find a free, appropriately sized bay (TODO need to do this before creating the substrate)
-    int bay_index = -1;
+    //Find a free, appropriately sized bay (TODO ideally need to do this before creating the substrate so that you can use a larger bay if available)
 
-    for (int i = 0; i < occupancy[size_index].size(); i ++)
+    for (int i = 0; i < occupancy[bay_size_index].size(); i ++)
     {
-        if (occupancy[size_index][i] == false)
+        if (occupancy[bay_size_index][i] == false)
         {
             bay_index = i;
             break;
@@ -84,49 +85,30 @@ void Part::createNegativeAndPositionPart(std::vector<std::vector<bool>>& occupan
         return;
     }
 
-    occupancy[size_index][bay_index] = true;
+    occupancy[bay_size_index][bay_index] = true;
 
     //Position the substrate in the parts bay
 
-    substrate = ShapeSetCentroid(substrate, gp_Pnt(PARTS_BAY_POSITIONS[size_index][bay_index].X(), PARTS_BAY_POSITIONS[size_index][bay_index].Y(), (substrate_depth / 2)));
+    substrate = ShapeSetCentroid(substrate, gp_Pnt(PARTS_BAY_POSITIONS[bay_size_index][bay_index].X(), PARTS_BAY_POSITIONS[bay_size_index][bay_index].Y(), (substrate_depth / 2)));
 
-    //Get the substrate centroid
     gp_Pnt substrate_centroid = ShapeCentroid(substrate);
-
-    //Get the shape centroid
     gp_Pnt shape_centroid = ShapeCentroid(*shape_);
-
-    //Get the shape min z
     Standard_Real shape_min_z = ShapeLowestPoint(*shape_);
-
-    //Get the substrate min z
     Standard_Real substrate_min_z = ShapeLowestPoint(substrate);
+    Standard_Real step_size = 1;
 
-    //Move the shape so that the X and Y centers align and the base is 2mm above the substrate base
+    //Position the shape so that the X and Y centers align and the base is 2mm above the substrate base
 
     gp_Vec shape_move(substrate_centroid.X() - shape_centroid.X(),
                       substrate_centroid.Y() - shape_centroid.Y(),
                       substrate_min_z - shape_min_z + 2);
 
-    // //Move the substrate so that the X and Y centers align and the base is 2mm below the shape base
-
-    // gp_Vec substrate_move(shape_centroid.X() - substrate_centroid.X(), 
-    //                       shape_centroid.Y() - substrate_centroid.Y(), 
-    //                       shape_min_z - substrate_min_z - 2);
-    
-    // substrate = TranslateShape(substrate, substrate_move);
-
     *shape_ = TranslateShape(*shape_, shape_move);
 
-    //Get the shape centroid
     shape_centroid = ShapeCentroid(*shape_);
-
-    //Get the shape min z
     shape_min_z = ShapeLowestPoint(*shape_);
 
-    Standard_Real step_size = 1;
-
-    //Create two boxes that are slightly larger than this
+    //Create two boxes that are slightly larger than the shape
     TopoDS_Shape top_bound = BRepPrimAPI_MakeBox(ShapeAxisSize(*shape_, 0) + 1, ShapeAxisSize(*shape_, 1) + 1, ShapeAxisSize(*shape_, 2) + 1).Shape();
     TopoDS_Shape bottom_bound = BRepPrimAPI_MakeBox(ShapeAxisSize(*shape_, 0) + 1, ShapeAxisSize(*shape_, 1) + 1, ShapeAxisSize(*shape_, 2) + 1).Shape();
 
@@ -258,13 +240,13 @@ void Part::createNegativeAndPositionPart(std::vector<std::vector<bool>>& occupan
 
     for (TopoDS_Shape sliver : slivers)
     {
-        std::cout << "subtracting sliver" << std::endl;
+        //std::cout << "subtracting sliver" << std::endl;
 
         substrate = SubtractShapeBFromA(substrate, sliver);
 
-        std::cout << "Sliver width: " << ShapeAxisSize(sliver, 0) << std::endl;
+        // std::cout << "Sliver width: " << ShapeAxisSize(sliver, 0) << std::endl;
 
-        std::cout << "Sliver height: " << ShapeAxisSize(sliver, 1) << std::endl;
+        // std::cout << "Sliver height: " << ShapeAxisSize(sliver, 1) << std::endl;
 
         s++;
     }
@@ -273,30 +255,23 @@ void Part::createNegativeAndPositionPart(std::vector<std::vector<bool>>& occupan
 
     std::stringstream sub_ss;
 
-    sub_ss << name_ << "_sliced_cradle_size_index_" << size_index << "_bay_index_" << bay_index << ".stl";
+    sub_ss << OUTPUT_DIR << name_ << "_sliced_cradle_size_index_" << bay_size_index << "_bay_index_" << bay_index << ".stl";
 
     // Export the result to STL
     StlAPI_Writer substrate_writer;
     substrate_writer.Write(substrate, sub_ss.str().c_str());
 }
 
+/*  
+    Creates a simulated vacuum nozzle and searches for locations on the top face of a part where the nozzle has a strong overlap
+*/
 void Part::generateVacuumGraspPosition()
 {
-    //Create nozzle simulator
     TopoDS_Shape nozzle = BRepPrimAPI_MakeCylinder(4, 1);
-
-    //Get the starting volume of the nozzle
     double nozzle_full_volume = ShapeVolume(nozzle);
-
-    //gp_Pnt starting_nozzle_centroid = ShapeCentroid(nozzle);
-
     gp_Pnt part_com = ShapeCenterOfMass(*shape_);
-
     Standard_Real part_highest_point = ShapeHighestPoint(*shape_);
-
     double largest_shape_axis = std::max(ShapeAxisSize(*shape_, 0), ShapeAxisSize(*shape_, 1));
-
-
     double best_fit = 0;
     int best_r = 0;
     int best_th = 0;
@@ -307,8 +282,6 @@ void Part::generateVacuumGraspPosition()
         //Iterate over angle
         for (int th = 0; th < 360; th += 90)
         {
-            //std::cout << "checking grasp at: " << r << " " << th << std::endl;
-
             gp_Pnt new_nozzle_pos(part_com.X() + r * cos(th * 3.14159 / 180),
                                 part_com.Y() + r * sin(th * 3.14159 / 180),
                                 part_highest_point - 0.51);
@@ -337,7 +310,7 @@ void Part::generateVacuumGraspPosition()
         }
     }
 
-    std::cout << "Intersection ratio: " << best_fit << std::endl;
+    //std::cout << "Intersection ratio: " << best_fit << std::endl;
 
     TopoDS_Shape visual_nozzle = BRepPrimAPI_MakeCylinder(4, 8);
 
@@ -361,7 +334,7 @@ void Part::generateVacuumGraspPosition()
 
     std::stringstream ss;
 
-    ss << name_ << "_vacuum_grasp.stl";
+    ss << WORKING_DIR << name_ << "_vacuum_grasp.stl";
 
     writer.Write(compound, ss.str().c_str());
 
@@ -370,6 +343,10 @@ void Part::generateVacuumGraspPosition()
     std::cout << "Finished grasp checking" << std::endl;
 }
 
+
+/*  
+    TODO
+*/
 void Part::generatePPGGraspPosition()
 {
     std::cout << "Generating PPG grasp" << std::endl;
