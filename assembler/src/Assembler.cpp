@@ -732,7 +732,7 @@ void Assembler::generateGrasps()
 
     for (std::shared_ptr<Part> part : target_assembly_->getParts())
     {
-        //part->generatePPGGraspPosition();
+        part->generatePPGGraspPosition();
 
         //Only create negatives or external parts
         if (part->getType() != Part::EXTERNAL)

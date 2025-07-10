@@ -45,6 +45,214 @@ bool Part::collide(std::shared_ptr<Part> otherPart)
 */
 void Part::createNegativeAndPositionPart(std::vector<std::vector<bool>>& occupancy)
 {
+    std::cout << "check" << std::endl;
+
+    // Display connection
+    Handle(Aspect_DisplayConnection) displayConnection = new Aspect_DisplayConnection();
+
+    // Graphic driver (OpenGL)
+    Handle(Graphic3d_GraphicDriver) graphicDriver = new OpenGl_GraphicDriver(displayConnection);
+
+    // Viewer
+    Handle(V3d_Viewer) viewer = new V3d_Viewer(graphicDriver);
+    viewer->SetDefaultLights();
+    viewer->SetLightOn();
+
+    // View
+    Handle(V3d_View) view = viewer->CreateView();
+
+    // Create an interactive context
+    Handle(AIS_InteractiveContext) context = new AIS_InteractiveContext(viewer);
+
+    // Wrap shape in an AIS_Shape
+    Handle(AIS_Shape) aisShape = new AIS_Shape(*shape_);
+    context->Display(aisShape, Standard_True);
+
+    context->SetDisplayMode(aisShape, AIS_Shaded, Standard_True);
+
+
+    int numSolids = 0;
+
+    for (TopExp_Explorer solidExp(*shape_, TopAbs_SOLID); solidExp.More(); solidExp.Next()) 
+    {
+        TopoDS_Solid solid = TopoDS::Solid(solidExp.Current());
+
+        numSolids ++;
+    }
+ 
+    std::cout << numSolids << " solids" << std::endl;
+
+    int numEdges = 0;
+
+    for (TopExp_Explorer edgeExp(*shape_, TopAbs_EDGE); edgeExp.More(); edgeExp.Next()) 
+    {
+        TopoDS_Edge edge = TopoDS::Edge(edgeExp.Current());
+
+        numEdges ++;
+    }
+
+    std::cout << numEdges << " edges" << std::endl;
+
+    int numVertices = 0;
+
+    for (TopExp_Explorer vertexExp(*shape_, TopAbs_VERTEX); vertexExp.More(); vertexExp.Next()) 
+    {
+        TopoDS_Vertex vertex = TopoDS::Vertex(vertexExp.Current());
+
+        numVertices ++;
+    }
+
+    std::cout << numVertices << " vertices" << std::endl;
+
+    int numFaces = 0;
+
+    for (TopExp_Explorer faceExp(*shape_, TopAbs_FACE); faceExp.More(); faceExp.Next())
+    {
+        TopoDS_Face face = TopoDS::Face(faceExp.Current());
+        BRepAdaptor_Surface surf(face);
+
+        GeomAbs_SurfaceType surfType = surf.GetType();
+
+        Standard_Real u1, u2, v1, v2;
+        BRepTools::UVBounds(face, u1, u2, v1, v2);
+
+        // Midpoint in parameter space
+        Standard_Real uMid = (u1 + u2) / 2.0;
+        Standard_Real vMid = (v1 + v2) / 2.0;
+
+        // Compute derivatives
+        gp_Pnt center;
+        gp_Vec d1u, d1v;
+        surf.D1(uMid, vMid, center, d1u, d1v);
+
+        numFaces ++;
+
+        std::cout << "Normal center: " << center.X() << " " << center.Y() << " " << center.Z() << " U range: " << u1 << " to " << u2 << " V range: " << v1 << " to " << v2 << std::endl;
+
+        // Compute normal
+        gp_Vec normal = d1u.Crossed(d1v);
+        if (normal.Magnitude() < 1e-6) continue; // Skip degenerate
+
+        std::cout << "drawing normal" << std::endl;
+
+        normal.Normalize();
+
+        // Create a small arrow representing the normal
+        Standard_Real length = 10.0;  // Adjust length as needed
+        gp_Pnt end = center.Translated(normal.Scaled(length));
+
+        gp_Pnt otherEnd = center.Translated(-normal.Scaled(length));
+
+        TopoDS_Edge normalEdge = BRepBuilderAPI_MakeEdge(center, end);
+        Handle(AIS_Shape) aisNormal = new AIS_Shape(normalEdge);
+
+        if (surfType == GeomAbs_Plane)
+            aisNormal->SetColor(Quantity_NOC_GREEN);
+
+        else if (surfType == GeomAbs_Cylinder)
+            aisNormal->SetColor(Quantity_NOC_BLUE);
+
+        else if (surfType == GeomAbs_Cone)
+            aisNormal->SetColor(Quantity_NOC_GRAY);
+
+        else if (surfType == GeomAbs_Sphere)
+            aisNormal->SetColor(Quantity_NOC_ORANGE);
+
+        else
+            aisNormal->SetColor(Quantity_NOC_RED);
+
+
+        TopoDS_Edge antiNormalEdge = BRepBuilderAPI_MakeEdge(center, otherEnd);
+        Handle(AIS_Shape) aisAntiNormal = new AIS_Shape(antiNormalEdge);
+
+        aisAntiNormal->SetColor(Quantity_NOC_BLACK);
+
+
+        context->Display(aisNormal, false);
+
+        context->Display(aisAntiNormal, false);
+
+        TopoDS_Shape sphere = BRepPrimAPI_MakeSphere(center, 0.5); // radius = 1
+
+        Handle(AIS_Shape) sphereShape = new AIS_Shape(sphere);
+
+        if (surfType == GeomAbs_Plane)
+            sphereShape->SetColor(Quantity_NOC_GREEN);
+
+        else if (surfType == GeomAbs_Cylinder)
+            sphereShape->SetColor(Quantity_NOC_BLUE);
+
+        else if (surfType == GeomAbs_Cone)
+            sphereShape->SetColor(Quantity_NOC_GRAY);
+
+        else if (surfType == GeomAbs_Sphere)
+            sphereShape->SetColor(Quantity_NOC_ORANGE);
+
+        else
+            sphereShape->SetColor(Quantity_NOC_RED);
+
+        context->SetDisplayMode(sphereShape, AIS_Shaded, Standard_True);
+
+        context->Display(sphereShape, false);
+    }
+
+    std::cout << "Num faces: " << numFaces << std::endl;
+
+    context->UpdateCurrentViewer();
+
+
+
+
+
+    // // Create a window (X11 version here; use WNT_Window for Windows)
+    // Handle(Xw_Window) window = new Xw_Window(displayConnection, "OpenCascade Viewer", 0, 0, 800, 600);
+    // view->SetWindow(window);
+    // view->SetBackgroundColor(Quantity_NOC_GRAY50);
+    // view->MustBeResized();
+    // view->TriedronDisplay(Aspect_TOTP_LEFT_LOWER, Quantity_NOC_WHITE, 0.1, V3d_ZBUFFER);
+    // view->SetProj(0, 0, -1);  // Top view
+    // view->FitAll();
+
+    // window->Map();
+
+    // // Start the event loop — OpenCascade has no built-in loop, so use your GUI framework (Qt, wxWidgets) or system events
+    // while (true) {
+
+
+    //     char key;
+    //     std::cin >> key;
+
+    //     if (key == 't') {
+    //         view->SetProj(0, 0, -1); // Top view
+    //     }
+
+    //     else if (key == 'b') {
+    //         view->SetProj(0, 0, 1); // Bottom view
+    //     }
+
+    //     else if (key == 'f') {
+    //         view->SetProj(0, -1, 0); // Front view
+    //     }
+
+    //     else if (key == 's') {
+    //         view->SetProj(1, 0, 0); // Front view
+    //     }
+
+    //     else if (key == 'i') {
+    //         view->SetProj(1, 1, 1); // Isometric
+    //     }
+
+    //     else if (key == 'c') {
+    //         break;
+    //     }
+
+    //     view->FitAll();
+    //     view->Redraw();
+    // }
+
+
+
+
     double substrate_depth = 6;   
     int bay_size_index = 0;
     int bay_index = -1;                                 //The bay index for a given size
@@ -349,9 +557,26 @@ void Part::generateVacuumGraspPosition()
 */
 void Part::generatePPGGraspPosition()
 {
+    struct Grasp
+    {
+        gp_Pnt center1;
+        gp_Pnt center2;
+
+        gp_Dir normal1;
+        gp_Dir normal2;
+
+        float com_xy_magnitude;
+
+        TopoDS_Compound padels_compound;
+    };
+
+
+    if (type_ == PART_TYPE::SCREW)
+        return;
+
     std::cout << "Generating PPG grasp" << std::endl;
 
-    //Iterate through the faces of the part and get their normals
+    //Iterate through the faces of the part and get their normals AND antinormals
 
     //Disregard normals that don't have close to zero value in z
     //Check all remaining normals against one another to find pairs that align, that are close to the CoM, and that don't cause collisions
@@ -359,41 +584,50 @@ void Part::generatePPGGraspPosition()
     std::vector<gp_Pnt> centers;
     std::vector<gp_Dir> normals;
 
-    TopExp_Explorer faceExplorer(*shape_, TopAbs_FACE);
+    for (TopExp_Explorer faceExp(*shape_, TopAbs_FACE); faceExp.More(); faceExp.Next())
+    {
+        TopoDS_Face face = TopoDS::Face(faceExp.Current());
+        BRepAdaptor_Surface surf(face);
 
-    for (; faceExplorer.More(); faceExplorer.Next()) {
-        const TopoDS_Face& face = TopoDS::Face(faceExplorer.Current());
+        GeomAbs_SurfaceType surfType = surf.GetType();
 
-        // Get surface from face
-        Handle(Geom_Surface) surface = BRep_Tool::Surface(face);
-
-        // Get parametric bounds of the face
         Standard_Real u1, u2, v1, v2;
         BRepTools::UVBounds(face, u1, u2, v1, v2);
 
-        // Evaluate properties at the center of the parametric domain
+        // Midpoint in parameter space
         Standard_Real uMid = (u1 + u2) / 2.0;
         Standard_Real vMid = (v1 + v2) / 2.0;
 
-        // Use SLProps to get surface properties including normal
-        GeomLProp_SLProps props(surface, uMid, vMid, 1, Precision::Confusion());
+        // Compute derivatives
+        gp_Pnt center;
+        gp_Vec d1u, d1v;
+        surf.D1(uMid, vMid, center, d1u, d1v);
 
-        if (props.IsNormalDefined()) {
-            gp_Pnt center = props.Value();
-            gp_Dir normal = props.Normal();
+        // Compute normal
+        gp_Vec normal = d1u.Crossed(d1v);
+        if (normal.Magnitude() < 1e-6) continue; // Skip degenerate
 
-            if (normal.Z() > 0.01 || normal.Z() < -0.01)
-                continue;
+        normal.Normalize();
 
-            centers.push_back(center);
-            normals.push_back(normal);
+        // Create a small arrow representing the normal
+        Standard_Real length = 10.0;  // Adjust length as needed
+        gp_Pnt end = center.Translated(normal.Scaled(length));
 
-            //std::cout << "Face center: " << center.X() << ", " << center.Y() << ", " << center.Z() << std::endl;
-            //std::cout << "Face normal: " << normal.X() << ", " << normal.Y() << ", " << normal.Z() << std::endl;
-        }
+        gp_Pnt otherEnd = center.Translated(-normal.Scaled(length));
+
+        TopoDS_Edge normalEdge = BRepBuilderAPI_MakeEdge(center, end);
+        Handle(AIS_Shape) aisNormal = new AIS_Shape(normalEdge);
+
+        centers.push_back(center);
+        normals.push_back(normal);
+
+        centers.push_back(center);
+        normals.push_back(-normal);
     }
 
     bool grasp_found = false;
+
+    Grasp best_grasp;    
 
     for (int a = 0; a < normals.size(); a++)
     {
@@ -402,18 +636,19 @@ void Part::generatePPGGraspPosition()
             Standard_Real normal_normal_angle = normals[a].Angle(normals[b]);
 
             //Check the the two normals are anti-aligned
-            if (normal_normal_angle < 0.65 * 3.14159)
+            if (normal_normal_angle < 0.99 * 3.14159)
                 continue;
 
             gp_Vec delta(centers[a], centers[b]);
 
+            //Check the points are far enough away to grasp
             if (delta.Magnitude() < 1)
                 continue;
 
             Standard_Real delta_normal_angle = gp_Vec(normals[b]).Angle(delta);
 
             //Check if the normal and the delta are misaligned
-            if (delta_normal_angle > 0.35 * 3.14159)
+            if (delta_normal_angle > 0.01 * 3.14159)
                 continue;
 
             //Check x y distance from center of delta to CoM
@@ -421,7 +656,9 @@ void Part::generatePPGGraspPosition()
 
             gp_Vec com_xy_distance(delta_center.X() - getCoM().X(), delta_center.Y() - getCoM().Y(), 0);
 
-            if (com_xy_distance.Magnitude() > 5)
+            float com_xy_mag = com_xy_distance.Magnitude();
+
+            if (com_xy_mag > 5)
                 continue;
 
             //Create padle models and check for collisions
@@ -433,7 +670,7 @@ void Part::generatePPGGraspPosition()
             gp_Dir target_normal_1 = normals[a];
 
             gp_Pnt source_point_1(5, 0, 5);
-            gp_Pnt target_point_1 = centers[a].Translated(3 * gp_Vec(normals[a]));
+            gp_Pnt target_point_1 = centers[a].Translated(1.1 * gp_Vec(normals[a]));
 
             gp_Vec rotation_axis_1;
 
@@ -470,7 +707,7 @@ void Part::generatePPGGraspPosition()
             gp_Dir target_normal_2 = normals[b];
 
             gp_Pnt source_point_2(5, 0, 5);
-            gp_Pnt target_point_2 = centers[b].Translated(3 * gp_Vec(normals[b]));
+            gp_Pnt target_point_2 = centers[b].Translated(1.1 * gp_Vec(normals[b]));
 
             gp_Vec rotation_axis_2;
 
@@ -514,6 +751,8 @@ void Part::generatePPGGraspPosition()
                 continue;
             }
 
+    
+
             TopoDS_Compound compound;
             BRep_Builder builder;
             builder.MakeCompound(compound);
@@ -524,15 +763,15 @@ void Part::generatePPGGraspPosition()
 
             builder.Add(compound, paddle_2);
 
-            BRepMesh_IncrementalMesh mesher(compound, 0.1);
+            // BRepMesh_IncrementalMesh mesher(compound, 0.1);
 
-            StlAPI_Writer writer;
+            // StlAPI_Writer writer;
 
-            std::stringstream ss;
+            // std::stringstream ss;
 
-            ss << WORKING_DIR << name_ << "_ppg_grasp_" << a << "_" << b << ".stl";
+            // ss << WORKING_DIR << name_ << "_ppg_grasp_" << a << "_" << b << ".stl";
 
-            writer.Write(compound, ss.str().c_str());
+            // writer.Write(compound, ss.str().c_str());
 
 
 
@@ -542,8 +781,56 @@ void Part::generatePPGGraspPosition()
             std::cout << "Face B center: " << centers[b].X() << ", " << centers[b].Y() << ", " << centers[b].Z() << std::endl;
             std::cout << "Face B normal: " << normals[b].X() << ", " << normals[b].Y() << ", " << normals[b].Z() << std::endl << std::endl;;
 
+            if (!grasp_found)
+            {
+                best_grasp = Grasp();
+
+                best_grasp.center1 = centers[a];
+                best_grasp.center2 = centers[b];
+
+                best_grasp.normal1 = normals[a];
+                best_grasp.normal2 = normals[b];
+
+                best_grasp.padels_compound = compound;
+
+                best_grasp.com_xy_magnitude = com_xy_mag;
+            }
+
+            //Compare grasps
+            else if (com_xy_mag < best_grasp.com_xy_magnitude)
+            {
+                best_grasp = Grasp();
+
+                best_grasp.center1 = centers[a];
+                best_grasp.center2 = centers[b];
+
+                best_grasp.normal1 = normals[a];
+                best_grasp.normal2 = normals[b];
+
+                best_grasp.padels_compound = compound;
+
+                best_grasp.com_xy_magnitude = com_xy_mag;
+            }
+
+
+
+            grasp_found = true;
+
 
         }
+    }
+
+    if (grasp_found)
+    {
+        BRepMesh_IncrementalMesh mesher(best_grasp.padels_compound, 0.1);
+
+        StlAPI_Writer writer;
+
+        std::stringstream ss;
+
+        ss << WORKING_DIR << name_ << "_ppg_grasp.stl";
+
+        writer.Write(best_grasp.padels_compound, ss.str().c_str());
     }
 
     //TODO need to check collisions and 'size' of grasp

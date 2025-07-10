@@ -24,6 +24,7 @@
 #include <iostream>
 #include <map>
 
+#include <GeomAbs_SurfaceType.hxx>
 
 #include <TCollection_ExtendedString.hxx>
 #include <TCollection_AsciiString.hxx>
@@ -37,6 +38,7 @@
 #include <vector>
 
 #include <BRepPrimAPI_MakeCylinder.hxx>
+#include <BRepPrimAPI_MakeSphere.hxx>
 
 #include <BRepAlgoAPI_Common.hxx>
 
@@ -58,6 +60,7 @@
 #include <ShapeFix_Shape.hxx>
 #include <BRepCheck_Analyzer.hxx>
 #include <BRepPrimAPI_MakeBox.hxx>
+#include <BRepBuilderAPI_MakeEdge.hxx>
 #include <BRepAlgoAPI_Cut.hxx>
 
 #include <gp_Trsf.hxx>
