@@ -52,6 +52,8 @@ public:
 
 private:
 
+    TopoDS_Shape GenerateGripperPlate(gp_Dir normal, gp_Pnt center);
+
     std::shared_ptr<TopoDS_Shape> shape_;
 
     PART_TYPE type_;

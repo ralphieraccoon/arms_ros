@@ -661,88 +661,97 @@ void Part::generatePPGGraspPosition()
             if (com_xy_mag > 5)
                 continue;
 
-            //Create padle models and check for collisions
-            TopoDS_Shape paddle_1 = BRepPrimAPI_MakeBox(10, 2, 10).Shape();
-            TopoDS_Shape paddle_2 = BRepPrimAPI_MakeBox(10, 2, 10).Shape();
+            TopoDS_Shape gripper_plate_1 = GenerateGripperPlate(normals[a], centers[a]);
+            TopoDS_Shape gripper_plate_2 = GenerateGripperPlate(normals[b], centers[b]);
 
-            //1st rotation
-            gp_Dir source_normal_1(0, 1, 0);
-            gp_Dir target_normal_1 = normals[a];
+            // //Create padle models and check for collisions
+            // TopoDS_Shape paddle_1 = BRepPrimAPI_MakeBox(10, 2, 10).Shape();
+            // TopoDS_Shape paddle_2 = BRepPrimAPI_MakeBox(10, 2, 10).Shape();
 
-            gp_Pnt source_point_1(5, 0, 5);
-            gp_Pnt target_point_1 = centers[a].Translated(1.1 * gp_Vec(normals[a]));
+            // //1st rotation
+            // gp_Dir source_normal_1(0, 1, 0);
+            // gp_Dir target_normal_1 = normals[a];
 
-            gp_Vec rotation_axis_1;
+            // gp_Pnt source_point_1(5, 0, 5);
+            // gp_Pnt target_point_1 = centers[a].Translated(1.1 * gp_Vec(normals[a]));
 
-            if ((gp_Vec(source_normal_1) ^ gp_Vec(target_normal_1)).Z() > 0)
-                rotation_axis_1 = gp_Vec(0, 0, 1);
+            // gp_Vec rotation_axis_1;
 
-            else
-                rotation_axis_1 = gp_Vec(0, 0, -1);
+            // if ((gp_Vec(source_normal_1) ^ gp_Vec(target_normal_1)).Z() > 0)
+            //     rotation_axis_1 = gp_Vec(0, 0, 1);
 
-            Standard_Real angle_1 = source_normal_1.Angle(target_normal_1); 
+            // else
+            //     rotation_axis_1 = gp_Vec(0, 0, -1);
 
-            gp_Trsf rotation_1;
+            // Standard_Real angle_1 = source_normal_1.Angle(target_normal_1); 
 
-            gp_Ax1 axis_1(source_point_1, gp_Dir(rotation_axis_1));  // rotate around axis passing through source point
-            rotation_1.SetRotation(axis_1, angle_1);
+            // gp_Trsf rotation_1;
 
-            BRepBuilderAPI_Transform rotTransformer_1(rotation_1);
-            rotTransformer_1.Perform(paddle_1);
-            paddle_1 = rotTransformer_1.Shape();
+            // gp_Ax1 axis_1(source_point_1, gp_Dir(rotation_axis_1));  // rotate around axis passing through source point
+            // rotation_1.SetRotation(axis_1, angle_1);
 
-            gp_Pnt rotated_source_point_1 = source_point_1.Transformed(rotation_1);  // new location of P1 after rotation TODO requierd?
+            // BRepBuilderAPI_Transform rotTransformer_1(rotation_1);
+            // rotTransformer_1.Perform(paddle_1);
+            // paddle_1 = rotTransformer_1.Shape();
 
-            gp_Vec translation_vector_1(rotated_source_point_1, target_point_1);
+            // gp_Pnt rotated_source_point_1 = source_point_1.Transformed(rotation_1);  // new location of P1 after rotation TODO requierd?
 
-            gp_Trsf translation_1;
-            translation_1.SetTranslation(translation_vector_1);
+            // gp_Vec translation_vector_1(rotated_source_point_1, target_point_1);
 
-            BRepBuilderAPI_Transform transTransformer_1(translation_1);
-            transTransformer_1.Perform(paddle_1);
-            paddle_1 = transTransformer_1.Shape();
+            // gp_Trsf translation_1;
+            // translation_1.SetTranslation(translation_vector_1);
 
-            //Second rotation
-            gp_Dir source_normal_2(0, 1, 0);
-            gp_Dir target_normal_2 = normals[b];
+            // BRepBuilderAPI_Transform transTransformer_1(translation_1);
+            // transTransformer_1.Perform(paddle_1);
+            // paddle_1 = transTransformer_1.Shape();
 
-            gp_Pnt source_point_2(5, 0, 5);
-            gp_Pnt target_point_2 = centers[b].Translated(1.1 * gp_Vec(normals[b]));
 
-            gp_Vec rotation_axis_2;
 
-            if ((gp_Vec(source_normal_2) ^ gp_Vec(target_normal_2)).Z() > 0)
-                rotation_axis_2 = gp_Vec(0, 0, 1);
 
-            else
-                rotation_axis_2 = gp_Vec(0, 0, -1);
 
-            Standard_Real angle_2 = source_normal_2.Angle(target_normal_2); 
 
-            gp_Trsf rotation_2;
 
-            gp_Ax1 axis_2(source_point_2, gp_Dir(rotation_axis_2));  // rotate around axis passing through source point
-            rotation_2.SetRotation(axis_2, angle_2);
+            // //Second rotation
+            // gp_Dir source_normal_2(0, 1, 0);
+            // gp_Dir target_normal_2 = normals[b];
 
-            BRepBuilderAPI_Transform rotTransformer_2(rotation_2);
-            rotTransformer_2.Perform(paddle_2);
-            paddle_2 = rotTransformer_2.Shape();
+            // gp_Pnt source_point_2(5, 0, 5);
+            // gp_Pnt target_point_2 = centers[b].Translated(1.1 * gp_Vec(normals[b]));
 
-            gp_Pnt rotated_source_point_2 = source_point_2.Transformed(rotation_2);  // new location of P2 after rotation TODO requierd?
+            // gp_Vec rotation_axis_2;
 
-            gp_Vec translation_vector_2(rotated_source_point_2, target_point_2);
+            // if ((gp_Vec(source_normal_2) ^ gp_Vec(target_normal_2)).Z() > 0)
+            //     rotation_axis_2 = gp_Vec(0, 0, 1);
 
-            gp_Trsf translation_2;
-            translation_2.SetTranslation(translation_vector_2);
+            // else
+            //     rotation_axis_2 = gp_Vec(0, 0, -1);
 
-            BRepBuilderAPI_Transform transTransformer_2(translation_2);
-            transTransformer_2.Perform(paddle_2);
-            paddle_2 = transTransformer_2.Shape();
+            // Standard_Real angle_2 = source_normal_2.Angle(target_normal_2); 
+
+            // gp_Trsf rotation_2;
+
+            // gp_Ax1 axis_2(source_point_2, gp_Dir(rotation_axis_2));  // rotate around axis passing through source point
+            // rotation_2.SetRotation(axis_2, angle_2);
+
+            // BRepBuilderAPI_Transform rotTransformer_2(rotation_2);
+            // rotTransformer_2.Perform(paddle_2);
+            // paddle_2 = rotTransformer_2.Shape();
+
+            // gp_Pnt rotated_source_point_2 = source_point_2.Transformed(rotation_2);  // new location of P2 after rotation TODO requierd?
+
+            // gp_Vec translation_vector_2(rotated_source_point_2, target_point_2);
+
+            // gp_Trsf translation_2;
+            // translation_2.SetTranslation(translation_vector_2);
+
+            // BRepBuilderAPI_Transform transTransformer_2(translation_2);
+            // transTransformer_2.Perform(paddle_2);
+            // paddle_2 = transTransformer_2.Shape();
 
             //Intersect the paddles and the part
-            TopoDS_Shape intersection_1 = ShapeIntersection(paddle_1, *shape_);
+            TopoDS_Shape intersection_1 = ShapeIntersection(gripper_plate_1, *shape_);
 
-            TopoDS_Shape intersection_2 = ShapeIntersection(paddle_2, *shape_);
+            TopoDS_Shape intersection_2 = ShapeIntersection(gripper_plate_2, *shape_);
 
             if ((!intersection_1.IsNull() && ShapeVolume(intersection_1) > 0.01) || (!intersection_2.IsNull() && ShapeVolume(intersection_2) > 0.01))
             {   
@@ -759,9 +768,9 @@ void Part::generatePPGGraspPosition()
 
             builder.Add(compound, *shape_);
 
-            builder.Add(compound, paddle_1);
+            builder.Add(compound, gripper_plate_1);
 
-            builder.Add(compound, paddle_2);
+            builder.Add(compound, gripper_plate_2);
 
             // BRepMesh_IncrementalMesh mesher(compound, 0.1);
 
@@ -834,4 +843,64 @@ void Part::generatePPGGraspPosition()
     }
 
     //TODO need to check collisions and 'size' of grasp
+}
+
+TopoDS_Shape Part::GenerateGripperPlate(gp_Dir normal, gp_Pnt center)
+{
+    TopoDS_Shape gripper_plate = BRepPrimAPI_MakeBox(10, 2, 15).Shape();
+    gp_Dir source_normal(0, 1, 0);
+    gp_Dir target_normal = normal;
+    gp_Pnt source_point(5, 0, 5);
+    gp_Pnt target_point = center.Translated(1.1 * gp_Vec(normal));
+    gp_Vec rotation_vector;
+    Standard_Real rotation_angle;
+    gp_Trsf rotation;
+    gp_Trsf translation;
+
+    if ((gp_Vec(source_normal) ^ gp_Vec(target_normal)).Z() > 0)
+        rotation_vector = gp_Vec(0, 0, 1);
+
+    else
+        rotation_vector = gp_Vec(0, 0, -1);
+
+    rotation_angle = source_normal.Angle(target_normal); 
+
+    gp_Ax1 rotation_axis(source_point, gp_Dir(rotation_vector));  // rotate around axis passing through source point
+    rotation.SetRotation(rotation_axis, rotation_angle);
+
+    BRepBuilderAPI_Transform rotTransformer(rotation);
+    rotTransformer.Perform(gripper_plate);
+    gripper_plate = rotTransformer.Shape();
+
+    gp_Pnt rotated_source_point = source_point.Transformed(rotation);  // new location of P1 after rotation TODO requierd?
+
+    gp_Vec translation_vector(rotated_source_point, target_point);
+
+    translation.SetTranslation(translation_vector);
+
+    BRepBuilderAPI_Transform transTransformer(translation);
+    transTransformer.Perform(gripper_plate);
+    gripper_plate = transTransformer.Shape();
+
+    //Check bottom of gripper plate and move it up slightly above part
+    Standard_Real shape_lowest_point = ShapeLowestPoint(*shape_);
+
+    Standard_Real plate_lowest_point = (ShapeLowestPoint(gripper_plate));
+
+    Standard_Real lowest_point_delta = shape_lowest_point - plate_lowest_point;
+
+    if (lowest_point_delta > -0.5)
+    {
+        gp_Vec raise_vector(0, 0, lowest_point_delta + 0.5);
+
+        gp_Trsf raise_translation;
+
+        raise_translation.SetTranslation(raise_vector);
+
+        BRepBuilderAPI_Transform raise_transformer(raise_translation);
+        raise_transformer.Perform(gripper_plate);
+        gripper_plate = raise_transformer.Shape();
+    }
+
+    return gripper_plate;
 }
