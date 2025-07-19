@@ -79,6 +79,12 @@
 
 #include <BRepAlgoAPI_Section.hxx>
 
+#include <Geom_Curve.hxx>
+#include <GeomAdaptor_Curve.hxx>
+#include <GeomAbs_CurveType.hxx>
+
+#include <BRepFilletAPI_MakeChamfer.hxx>
+
 #include <TopoDS_Edge.hxx>
 #include <TopoDS_Face.hxx>
 #include <TopAbs_Orientation.hxx>
@@ -152,6 +158,14 @@ TopoDS_Shape SubtractShapeBFromA(TopoDS_Shape shape_A, TopoDS_Shape shape_B);
 
 void SaveShapeAsSTL(TopoDS_Shape shape, std::string filename);
 
-gp_Pnt SumPoints(gp_Pnt point_A, gp_Pnt point_B);
+gp_Vec SumPoints(gp_Pnt point_A, gp_Pnt point_B);
+
+gp_Vec SubtractPoints(gp_Pnt point_A, gp_Pnt point_B);
+
+GeomAbs_CurveType getEdgeType(TopoDS_Edge edge);
+
+gp_Pnt getEdgeStart(TopoDS_Edge edge);
+
+gp_Pnt getEdgeEnd(TopoDS_Edge edge);
 
 #endif

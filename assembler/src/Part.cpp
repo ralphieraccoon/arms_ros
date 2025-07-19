@@ -38,221 +38,12 @@ bool Part::collide(std::shared_ptr<Part> otherPart)
         return false;
 }
 
-/*  Input: occupancy matrix for the parts bays
 
-    Creates a substrate of appropriate size and positions it in the parts bay. Positions the part within the substrate and
-    creates a negative. Saves a .stl copy of the negative.
-*/
-void Part::createNegativeAndPositionPart(std::vector<std::vector<bool>>& occupancy)
+
+
+
+void Part::positionPartInBay(std::vector<std::vector<bool>>& occupancy)
 {
-    std::cout << "check" << std::endl;
-
-    // Display connection
-    Handle(Aspect_DisplayConnection) displayConnection = new Aspect_DisplayConnection();
-
-    // Graphic driver (OpenGL)
-    Handle(Graphic3d_GraphicDriver) graphicDriver = new OpenGl_GraphicDriver(displayConnection);
-
-    // Viewer
-    Handle(V3d_Viewer) viewer = new V3d_Viewer(graphicDriver);
-    viewer->SetDefaultLights();
-    viewer->SetLightOn();
-
-    // View
-    Handle(V3d_View) view = viewer->CreateView();
-
-    // Create an interactive context
-    Handle(AIS_InteractiveContext) context = new AIS_InteractiveContext(viewer);
-
-    // Wrap shape in an AIS_Shape
-    Handle(AIS_Shape) aisShape = new AIS_Shape(*shape_);
-    context->Display(aisShape, Standard_True);
-
-    context->SetDisplayMode(aisShape, AIS_Shaded, Standard_True);
-
-
-    int numSolids = 0;
-
-    for (TopExp_Explorer solidExp(*shape_, TopAbs_SOLID); solidExp.More(); solidExp.Next()) 
-    {
-        TopoDS_Solid solid = TopoDS::Solid(solidExp.Current());
-
-        numSolids ++;
-    }
- 
-    std::cout << numSolids << " solids" << std::endl;
-
-    int numEdges = 0;
-
-    for (TopExp_Explorer edgeExp(*shape_, TopAbs_EDGE); edgeExp.More(); edgeExp.Next()) 
-    {
-        TopoDS_Edge edge = TopoDS::Edge(edgeExp.Current());
-
-        numEdges ++;
-    }
-
-    std::cout << numEdges << " edges" << std::endl;
-
-    int numVertices = 0;
-
-    for (TopExp_Explorer vertexExp(*shape_, TopAbs_VERTEX); vertexExp.More(); vertexExp.Next()) 
-    {
-        TopoDS_Vertex vertex = TopoDS::Vertex(vertexExp.Current());
-
-        numVertices ++;
-    }
-
-    std::cout << numVertices << " vertices" << std::endl;
-
-    int numFaces = 0;
-
-    for (TopExp_Explorer faceExp(*shape_, TopAbs_FACE); faceExp.More(); faceExp.Next())
-    {
-        TopoDS_Face face = TopoDS::Face(faceExp.Current());
-        BRepAdaptor_Surface surf(face);
-
-        GeomAbs_SurfaceType surfType = surf.GetType();
-
-        Standard_Real u1, u2, v1, v2;
-        BRepTools::UVBounds(face, u1, u2, v1, v2);
-
-        // Midpoint in parameter space
-        Standard_Real uMid = (u1 + u2) / 2.0;
-        Standard_Real vMid = (v1 + v2) / 2.0;
-
-        // Compute derivatives
-        gp_Pnt center;
-        gp_Vec d1u, d1v;
-        surf.D1(uMid, vMid, center, d1u, d1v);
-
-        numFaces ++;
-
-        std::cout << "Normal center: " << center.X() << " " << center.Y() << " " << center.Z() << " U range: " << u1 << " to " << u2 << " V range: " << v1 << " to " << v2 << std::endl;
-
-        // Compute normal
-        gp_Vec normal = d1u.Crossed(d1v);
-        if (normal.Magnitude() < 1e-6) continue; // Skip degenerate
-
-        std::cout << "drawing normal" << std::endl;
-
-        normal.Normalize();
-
-        // Create a small arrow representing the normal
-        Standard_Real length = 10.0;  // Adjust length as needed
-        gp_Pnt end = center.Translated(normal.Scaled(length));
-
-        gp_Pnt otherEnd = center.Translated(-normal.Scaled(length));
-
-        TopoDS_Edge normalEdge = BRepBuilderAPI_MakeEdge(center, end);
-        Handle(AIS_Shape) aisNormal = new AIS_Shape(normalEdge);
-
-        if (surfType == GeomAbs_Plane)
-            aisNormal->SetColor(Quantity_NOC_GREEN);
-
-        else if (surfType == GeomAbs_Cylinder)
-            aisNormal->SetColor(Quantity_NOC_BLUE);
-
-        else if (surfType == GeomAbs_Cone)
-            aisNormal->SetColor(Quantity_NOC_GRAY);
-
-        else if (surfType == GeomAbs_Sphere)
-            aisNormal->SetColor(Quantity_NOC_ORANGE);
-
-        else
-            aisNormal->SetColor(Quantity_NOC_RED);
-
-
-        TopoDS_Edge antiNormalEdge = BRepBuilderAPI_MakeEdge(center, otherEnd);
-        Handle(AIS_Shape) aisAntiNormal = new AIS_Shape(antiNormalEdge);
-
-        aisAntiNormal->SetColor(Quantity_NOC_BLACK);
-
-
-        context->Display(aisNormal, false);
-
-        context->Display(aisAntiNormal, false);
-
-        TopoDS_Shape sphere = BRepPrimAPI_MakeSphere(center, 0.5); // radius = 1
-
-        Handle(AIS_Shape) sphereShape = new AIS_Shape(sphere);
-
-        if (surfType == GeomAbs_Plane)
-            sphereShape->SetColor(Quantity_NOC_GREEN);
-
-        else if (surfType == GeomAbs_Cylinder)
-            sphereShape->SetColor(Quantity_NOC_BLUE);
-
-        else if (surfType == GeomAbs_Cone)
-            sphereShape->SetColor(Quantity_NOC_GRAY);
-
-        else if (surfType == GeomAbs_Sphere)
-            sphereShape->SetColor(Quantity_NOC_ORANGE);
-
-        else
-            sphereShape->SetColor(Quantity_NOC_RED);
-
-        context->SetDisplayMode(sphereShape, AIS_Shaded, Standard_True);
-
-        context->Display(sphereShape, false);
-    }
-
-    std::cout << "Num faces: " << numFaces << std::endl;
-
-    context->UpdateCurrentViewer();
-
-
-
-
-
-    // // Create a window (X11 version here; use WNT_Window for Windows)
-    // Handle(Xw_Window) window = new Xw_Window(displayConnection, "OpenCascade Viewer", 0, 0, 800, 600);
-    // view->SetWindow(window);
-    // view->SetBackgroundColor(Quantity_NOC_GRAY50);
-    // view->MustBeResized();
-    // view->TriedronDisplay(Aspect_TOTP_LEFT_LOWER, Quantity_NOC_WHITE, 0.1, V3d_ZBUFFER);
-    // view->SetProj(0, 0, -1);  // Top view
-    // view->FitAll();
-
-    // window->Map();
-
-    // // Start the event loop — OpenCascade has no built-in loop, so use your GUI framework (Qt, wxWidgets) or system events
-    // while (true) {
-
-
-    //     char key;
-    //     std::cin >> key;
-
-    //     if (key == 't') {
-    //         view->SetProj(0, 0, -1); // Top view
-    //     }
-
-    //     else if (key == 'b') {
-    //         view->SetProj(0, 0, 1); // Bottom view
-    //     }
-
-    //     else if (key == 'f') {
-    //         view->SetProj(0, -1, 0); // Front view
-    //     }
-
-    //     else if (key == 's') {
-    //         view->SetProj(1, 0, 0); // Front view
-    //     }
-
-    //     else if (key == 'i') {
-    //         view->SetProj(1, 1, 1); // Isometric
-    //     }
-
-    //     else if (key == 'c') {
-    //         break;
-    //     }
-
-    //     view->FitAll();
-    //     view->Redraw();
-    // }
-
-
-
-
     double substrate_depth = 6;   
     int bay_size_index = 0;
     int bay_index = -1;                                 //The bay index for a given size
@@ -260,24 +51,12 @@ void Part::createNegativeAndPositionPart(std::vector<std::vector<bool>>& occupan
     Standard_Real y_size = ShapeAxisSize(*shape_, 1);
 
     //Select correct bay size depending on size of part
-    
     if (x_size > 38 || y_size > 38)
     {
         bay_size_index = 1;
     }
 
-    //Create the substrate and add a notch to the corner to indicate orientation
-
-    TopoDS_Shape substrate = BRepPrimAPI_MakeBox(BAY_SIZES[bay_size_index], BAY_SIZES[bay_size_index], substrate_depth).Shape();    //TODO: box shape depends on part
-
-    TopoDS_Shape notch = BRepPrimAPI_MakeCylinder(3, 2).Shape();
-
-    notch = ShapeSetCentroid(notch, gp_Pnt(0, 0, ShapeHighestPoint(substrate)));
-
-    substrate = BRepAlgoAPI_Cut(substrate, notch);
-
     //Find a free, appropriately sized bay (TODO ideally need to do this before creating the substrate so that you can use a larger bay if available)
-
     for (int i = 0; i < occupancy[bay_size_index].size(); i ++)
     {
         if (occupancy[bay_size_index][i] == false)
@@ -295,179 +74,17 @@ void Part::createNegativeAndPositionPart(std::vector<std::vector<bool>>& occupan
 
     occupancy[bay_size_index][bay_index] = true;
 
-    //Position the substrate in the parts bay
+    bay_index_ = bay_index;
 
-    substrate = ShapeSetCentroid(substrate, gp_Pnt(PARTS_BAY_POSITIONS[bay_size_index][bay_index].X(), PARTS_BAY_POSITIONS[bay_size_index][bay_index].Y(), (substrate_depth / 2)));
+    bay_size_index_ = bay_size_index;
 
-    gp_Pnt substrate_centroid = ShapeCentroid(substrate);
-    gp_Pnt shape_centroid = ShapeCentroid(*shape_);
-    Standard_Real shape_min_z = ShapeLowestPoint(*shape_);
-    Standard_Real substrate_min_z = ShapeLowestPoint(substrate);
-    Standard_Real step_size = 1;
-
-    //Position the shape so that the X and Y centers align and the base is 2mm above the substrate base
-
-    gp_Vec shape_move(substrate_centroid.X() - shape_centroid.X(),
-                      substrate_centroid.Y() - shape_centroid.Y(),
-                      substrate_min_z - shape_min_z + 2);
-
-    *shape_ = TranslateShape(*shape_, shape_move);
-
-    shape_centroid = ShapeCentroid(*shape_);
-    shape_min_z = ShapeLowestPoint(*shape_);
-
-    //Create two boxes that are slightly larger than the shape
-    TopoDS_Shape top_bound = BRepPrimAPI_MakeBox(ShapeAxisSize(*shape_, 0) + 1, ShapeAxisSize(*shape_, 1) + 1, ShapeAxisSize(*shape_, 2) + 1).Shape();
-    TopoDS_Shape bottom_bound = BRepPrimAPI_MakeBox(ShapeAxisSize(*shape_, 0) + 1, ShapeAxisSize(*shape_, 1) + 1, ShapeAxisSize(*shape_, 2) + 1).Shape();
-
-    //Set one box bottom to bottom of part and XY centroid pos to part XY centroid pos
-    gp_Pnt top_centroid = ShapeCentroid(top_bound);
-    Standard_Real top_min_z = ShapeLowestPoint(top_bound);
-
-    gp_Vec top_move(shape_centroid.X() - top_centroid.X(), 
-                    shape_centroid.Y() - top_centroid.Y(), 
-                    shape_min_z - top_min_z);
+    //Position the shape in the parts bay - base of the shape should be at -1 mm - TODO this needs to be calibrated
     
-    top_bound = TranslateShape(top_bound, top_move);
-
-    //Set other box top to bottom of part minus step size, and XY centroid pos to part XY centroid pos
-    gp_Pnt bottom_centroid = ShapeCentroid(bottom_bound);
-    Standard_Real bottom_max_z = ShapeHighestPoint(bottom_bound);
-
-    gp_Vec bottom_move(shape_centroid.X() - bottom_centroid.X(), 
-                    shape_centroid.Y() - bottom_centroid.Y(), 
-                    shape_min_z - bottom_max_z - step_size);
-    
-    bottom_bound = TranslateShape(bottom_bound, bottom_move);
-
-    std::vector<TopoDS_Shape> slivers;
-
-    //Step the boxes through the step size, cut the part with both of them
-    //Find the bounding box of the sliver, scale it
-    //Make sure the the x and y sizes are at least as big as the previous sliver
-    //Add to the list of slivers
-    for (int i = 0; i < 5; i ++)
-    {
-        std::cout << "making cuts" << std::endl;
-
-        top_bound = TranslateShape(top_bound, gp_Vec(0, 0, step_size));
-        bottom_bound = TranslateShape(bottom_bound, gp_Vec(0, 0, step_size));
+    *shape_ = ShapeSetCentroid(*shape_, gp_Pnt(PARTS_BAY_POSITIONS[bay_size_index][bay_index].X(),
+                                               PARTS_BAY_POSITIONS[bay_size_index][bay_index].X(),
+                                               ShapeAxisSize(*shape_, 2) / 2 - 1));
 
 
-        bool perform_first_cut = true;
-        bool perform_second_cut = true;
-        
-
-        TopoDS_Shape first_intersect = ShapeIntersection(*shape_, bottom_bound);
-
-        if (first_intersect.IsNull())
-        {
-            perform_first_cut = false;
-
-            std::cout << "No first cut" << std::endl;
-        }
-
-        TopoDS_Shape second_intersect = ShapeIntersection(*shape_, top_bound);
-
-        if (second_intersect.IsNull())
-        {
-            perform_second_cut = false;
-
-            std::cout << "No second cut" << std::endl;
-        }
-
-        if (!perform_first_cut)
-            break;
-
-        // Perform the first subtraction: A - B
-        
-        std::cout << "subtraction 1" << std::endl;
-
-        TopoDS_Shape first_cut = SubtractShapeBFromA(*shape_, bottom_bound);
-
-        TopoDS_Shape both_cuts;
-
-        if (perform_second_cut)
-        {
-            std::cout << "substraction 2" << std::endl;
-
-            //Perform the second subtraction
-            both_cuts = SubtractShapeBFromA(first_cut, top_bound);
-        }
-
-        else
-        {
-            both_cuts = first_cut;
-        }
-
-        if (ShapeBoundingBox(both_cuts).IsVoid())
-            break;
-
-        // std::stringstream ss;
-
-        // ss << "sliver" << i << ".stl";
-
-        // std::cout << "saving sliver" << std::endl;
-
-        // SaveShapeAsSTL(both_cuts, ss.str());
-
-        TopoDS_Shape both_cuts_bbox_shape = ShapeHighBoundingBoxShape(both_cuts, 5);
-
-        // std::stringstream ss2;
-
-        // ss2 << "sliver_bbox" << i << ".stl";
-
-        // std::cout << "saving sliver bbox" << std::endl;
-
-        // SaveShapeAsSTL(both_cuts_bbox_shape, ss2.str());
-
-        Standard_Real x_size = ShapeAxisSize(both_cuts_bbox_shape, 0);
-
-        Standard_Real y_size = ShapeAxisSize(both_cuts_bbox_shape, 1);
-
-        Standard_Real scaling_factor;
-
-        if (x_size < y_size)
-        {
-            scaling_factor = (x_size + 0.8) / x_size;
-        }
-
-        else
-        {
-            scaling_factor = (y_size + 0.8) / y_size;
-        }
-
-        TopoDS_Shape scaled_sliver = UniformScaleShape(both_cuts_bbox_shape, scaling_factor);
-
-        //Now extrude upwards
-
-        slivers.push_back(scaled_sliver);
-    }
-
-    int s = 0;
-
-    for (TopoDS_Shape sliver : slivers)
-    {
-        //std::cout << "subtracting sliver" << std::endl;
-
-        substrate = SubtractShapeBFromA(substrate, sliver);
-
-        // std::cout << "Sliver width: " << ShapeAxisSize(sliver, 0) << std::endl;
-
-        // std::cout << "Sliver height: " << ShapeAxisSize(sliver, 1) << std::endl;
-
-        s++;
-    }
-
-    BRepMesh_IncrementalMesh(substrate, 0.1);  // Mesh with a 0.1 tolerance
-
-    std::stringstream sub_ss;
-
-    sub_ss << OUTPUT_DIR << name_ << "_sliced_cradle_size_index_" << bay_size_index << "_bay_index_" << bay_index << ".stl";
-
-    // Export the result to STL
-    StlAPI_Writer substrate_writer;
-    substrate_writer.Write(substrate, sub_ss.str().c_str());
 }
 
 /*  
@@ -553,7 +170,8 @@ void Part::generateVacuumGraspPosition()
 
 
 /*  
-    TODO
+    TODO this should be applied to initial part not target part
+    ultimately you'll have to generate different grasps for different contexts
 */
 void Part::generatePPGGraspPosition()
 {
@@ -831,6 +449,40 @@ void Part::generatePPGGraspPosition()
 
     if (grasp_found)
     {
+        gp_Vec grasp_center = 0.5 * SumPoints(best_grasp.center2, best_grasp.center1);
+
+        gp_Vec default_angle_vector(0, 1, 0);
+
+        Standard_Real grasp_angle = grasp_center.Angle(default_angle_vector);
+        
+        Standard_Real grasp_width = SubtractPoints(best_grasp.center2, best_grasp.center1).Magnitude();
+
+        Standard_Real grasp_height = grasp_center.Z() - 7.5;    //TODO set size of gripper
+
+        Standard_Real shape_lowest_point = ShapeLowestPoint(*shape_);
+
+        Standard_Real lowest_point_delta = shape_lowest_point - grasp_height;
+
+
+        if (lowest_point_delta > -0.5)
+        {
+            grasp_height += lowest_point_delta + 0.5;
+        }
+
+
+
+        ppg_grasp_position_ = SubtractPoints(gp_Pnt(grasp_center.X(), grasp_center.Y(), grasp_height), getCoM());
+
+        ppg_grasp_rotation_ = grasp_angle;
+
+        ppg_grasp_width_ = grasp_width;
+
+        std::cout << "Grasp pos: " << ppg_grasp_position_.X() << " " << ppg_grasp_position_.Y() << " " << ppg_grasp_position_.Z() << std::endl;
+        std::cout << "Grasp angle: " << grasp_angle << std::endl;
+        std::cout << "Grasp width: " << grasp_width << std::endl;
+ 
+ 
+
         BRepMesh_IncrementalMesh mesher(best_grasp.padels_compound, 0.1);
 
         StlAPI_Writer writer;

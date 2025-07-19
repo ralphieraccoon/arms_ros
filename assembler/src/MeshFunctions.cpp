@@ -208,9 +208,64 @@ void SaveShapeAsSTL(TopoDS_Shape shape, std::string filename)
     writer.Write(shape, filename.c_str());
 }
 
-gp_Pnt SumPoints(gp_Pnt point_A, gp_Pnt point_B)
+gp_Vec SumPoints(gp_Pnt point_A, gp_Pnt point_B)
 {
-    return gp_Pnt(point_A.X() + point_B.X(), point_A.Y() + point_B.Y(), point_A.Z() + point_B.Z());
+    return gp_Vec(point_A.X() + point_B.X(), point_A.Y() + point_B.Y(), point_A.Z() + point_B.Z());
+}
+
+gp_Vec SubtractPoints(gp_Pnt point_A, gp_Pnt point_B)
+{
+    return gp_Vec(point_A.X() - point_B.X(), point_A.Y() - point_B.Y(), point_A.Z() - point_B.Z());
+}
+
+GeomAbs_CurveType getEdgeType(TopoDS_Edge edge)
+{
+    Standard_Real first, last;
+
+    Handle(Geom_Curve) curve = BRep_Tool::Curve(edge, first, last);
+    if (curve.IsNull())
+    {
+        std::cout << "NULL CURVE" << std::endl;
+
+        return GeomAbs_CurveType::GeomAbs_Line;
+    }
+
+    GeomAdaptor_Curve adaptor(curve, first, last);
+    GeomAbs_CurveType type = adaptor.GetType();
+
+    return type;    
+}
+
+gp_Pnt getEdgeStart(TopoDS_Edge edge)
+{
+    Standard_Real first, last;
+    Handle(Geom_Curve) curve = BRep_Tool::Curve(edge, first, last);
+    if (curve.IsNull())
+    {
+        std::cout << "NULL CURVE" << std::endl;
+
+        return gp_Pnt(0, 0, 0);
+    }
+
+    GeomAdaptor_Curve adaptor(curve, first, last);
+
+    return curve->Value(first);
+}
+
+gp_Pnt getEdgeEnd(TopoDS_Edge edge)
+{
+    Standard_Real first, last;
+    Handle(Geom_Curve) curve = BRep_Tool::Curve(edge, first, last);
+    if (curve.IsNull())
+    {
+        std::cout << "NULL CURVE" << std::endl;
+
+        return gp_Pnt(0, 0, 0);
+    }
+
+    GeomAdaptor_Curve adaptor(curve, first, last);
+
+    return curve->Value(last);
 }
 
 // void ProjectedContourFromShape(TopoDS_Shape shape, gp_Pnt origin, gp_Dir normal)

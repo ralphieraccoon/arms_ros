@@ -2,6 +2,8 @@
 
 #include "assembler/Assembly.hpp"
 
+#include "assembler/CradleGenerator.hpp"
+
 
 #include "assembler/Part.hpp"
 
@@ -177,8 +179,6 @@ void Assembler::generateAssemblySequence()
 
         std::shared_ptr<Part> target_part = target_assembly_->getPartById(initial_part->getId());
 
-        //TODO need to add grasps for internal objects
-
         gp_Pnt pick_position(initial_part->getCentroid().X(), 
                              initial_part->getCentroid().Y(),
                              initial_part->getHighestPoint());
@@ -186,6 +186,10 @@ void Assembler::generateAssemblySequence()
         gp_Pnt place_position(target_part->getCentroid().X(), 
                               target_part->getCentroid().Y(),
                               target_part->getHighestPoint());
+
+        gp_Vec grasp_position = target_part->getPPGGraspPosition();
+        Standard_Real grasp_rotation = target_part->getPPGGraspRotation();
+        Standard_Real grasp_width = target_part->getPPGGraspWidth();
 
         YAML::Node designate_part_command;
         designate_part_command["command-type"] = "DESIGNATE_INTERNAL_PART";
@@ -196,6 +200,11 @@ void Assembler::generateAssemblySequence()
         designate_part_command["command-properties"]["part-pick-pos-y"] = pick_position.Y();
         designate_part_command["command-properties"]["part-place-pos-x"] = place_position.X();
         designate_part_command["command-properties"]["part-place-pos-y"] = place_position.Y();
+        designate_part_command["command-properties"]["part-grasp-height"] = grasp_position.Z();
+        designate_part_command["command-properties"]["part-grasp-pos-x"] = grasp_position.X();
+        designate_part_command["command-properties"]["part-grasp-pos-y"] = grasp_position.Y();
+        designate_part_command["command-properties"]["part-grasp-angle"] = grasp_rotation;
+        designate_part_command["command-properties"]["part-grasp-width"] = grasp_width;
 
         commands.push_back(designate_part_command);
     }
@@ -208,9 +217,9 @@ void Assembler::generateAssemblySequence()
 
         std::shared_ptr<Part> target_part = target_assembly_->getPartById(initial_part->getId());
 
-        gp_Pnt pick_position = SumPoints(initial_part->getCoM(), initial_part->getVacuumGrasp());
+        gp_Vec pick_position = SumPoints(initial_part->getCoM(), initial_part->getVacuumGrasp());
 
-        gp_Pnt place_position = SumPoints(target_part->getCoM(), target_part->getVacuumGrasp());
+        gp_Vec place_position = SumPoints(target_part->getCoM(), target_part->getVacuumGrasp());
 
         YAML::Node designate_part_command;
         designate_part_command["command-type"] = "DESIGNATE_EXTERNAL_PART";
@@ -287,7 +296,19 @@ void Assembler::generateAssemblySequence()
             place_part_command["command-type"] = "PLACE_PART";
 
         place_part_command["command-properties"]["part-id"] = part_id;
-        
+
+        //If it's an internal part, add the command to vibrate the part first
+        if (part_type == Part::INTERNAL)
+        {
+            YAML::Node vibrate_part_command;
+
+            vibrate_part_command["command-type"] = "VIBRATE PART";
+
+            vibrate_part_command["command_properties"]["part-id"] = part_id;
+
+            commands.push_back(place_part_command);
+        }
+
         commands.push_back(place_part_command);
     }
 
@@ -713,7 +734,15 @@ void Assembler::generateNegatives()
 
             std::cout << "Creating part negative" << std::endl;
 
-        part->createNegativeAndPositionPart(bay_occupancy_);
+        part->positionPartInBay(bay_occupancy_);
+
+        CradleGenerator cradle_gen(part->getName(), *part->getShape());
+
+        cradle_gen.createNegative();
+
+        //part->createNegative();
+
+        //part->createNegativeAndPositionPart(bay_occupancy_);
     }
 }
 
@@ -721,22 +750,9 @@ void Assembler::generateGrasps()
 {
     std::cout << "Generating grasps" << std::endl;
 
-    // for (std::shared_ptr<Part> part : initial_assembly_->getParts())
-    // {
-    //     //Only create negatives or external parts
-    //     if (part->getType() != Part::EXTERNAL)
-    //         continue;
-
-    //     part->generateVacuumGraspPosition();
-    // }
-
     for (std::shared_ptr<Part> part : target_assembly_->getParts())
     {
         part->generatePPGGraspPosition();
-
-        //Only create negatives or external parts
-        if (part->getType() != Part::EXTERNAL)
-            continue;
 
         part->generateVacuumGraspPosition();
     }

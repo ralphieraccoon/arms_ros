@@ -32,7 +32,7 @@ public:
 
     void setCentroidPosition(gp_Pnt position) {shape_ = std::make_shared<TopoDS_Shape>(ShapeSetCentroid(*shape_, position));}
 
-    void createNegativeAndPositionPart(std::vector<std::vector<bool>>& occupancy);
+    void positionPartInBay(std::vector<std::vector<bool>>& occupancy);
 
     void generateVacuumGraspPosition();
 
@@ -40,15 +40,18 @@ public:
 
     void saveShape(std::string filename) {SaveShapeAsSTL(*shape_, filename);}
 
-    gp_Pnt                          getVacuumGrasp()    { return vacuum_grasp_position_; }
-    gp_Pnt                          getCoM()            { return ShapeCenterOfMass(*shape_); }
-    gp_Pnt                          getCentroid()       { return ShapeCentroid(*shape_); }
-    Standard_Real                   getHighestPoint()   { return ShapeHighestPoint(*shape_); }
+    gp_Pnt                          getVacuumGrasp()        { return vacuum_grasp_position_; }
+    gp_Vec                          getPPGGraspPosition()   { return ppg_grasp_position_; }
+    Standard_Real                   getPPGGraspRotation()   { return ppg_grasp_rotation_; }
+    Standard_Real                   getPPGGraspWidth()      { return ppg_grasp_width_; }
+    gp_Pnt                          getCoM()                { return ShapeCenterOfMass(*shape_); }
+    gp_Pnt                          getCentroid()           { return ShapeCentroid(*shape_); }
+    Standard_Real                   getHighestPoint()       { return ShapeHighestPoint(*shape_); }
 
-    PART_TYPE                       getType()           { return type_; }
-    size_t                          getId()             { return id_; }
-    std::string                     getName()           { return name_; }
-    std::shared_ptr<TopoDS_Shape>   getShape()          { return shape_; }
+    PART_TYPE                       getType()               { return type_; }
+    size_t                          getId()                 { return id_; }
+    std::string                     getName()               { return name_; }
+    std::shared_ptr<TopoDS_Shape>   getShape()              { return shape_; }
 
 private:
 
@@ -60,9 +63,19 @@ private:
 
     gp_Pnt vacuum_grasp_position_;  //Relative to CoM
 
+    gp_Vec ppg_grasp_position_;  //Relative to CoM
+
+    Standard_Real ppg_grasp_rotation_;
+
+    Standard_Real ppg_grasp_width_;
+
     size_t id_;
 
     std::string name_;
+
+    size_t bay_index_ = -1;
+
+    size_t bay_size_index_ = -1; 
 };
 
 #endif
