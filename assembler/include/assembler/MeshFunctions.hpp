@@ -160,6 +160,8 @@ void SaveShapeAsSTL(TopoDS_Shape shape, std::string filename);
 
 gp_Vec SumPoints(gp_Pnt point_A, gp_Pnt point_B);
 
+gp_Vec SumPoints(gp_Pnt point_A, gp_Vec point_B);
+
 gp_Vec SubtractPoints(gp_Pnt point_A, gp_Pnt point_B);
 
 GeomAbs_CurveType getEdgeType(TopoDS_Edge edge);

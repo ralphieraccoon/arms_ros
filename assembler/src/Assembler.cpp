@@ -187,8 +187,8 @@ void Assembler::generateAssemblySequence()
                               target_part->getCentroid().Y(),
                               target_part->getHighestPoint());
 
-        gp_Vec grasp_position = target_part->getPPGGraspPosition();
-        Standard_Real grasp_rotation = target_part->getPPGGraspRotation();
+        gp_Vec grasp_position = SumPoints(initial_part->getCoM(), target_part->getPPGGraspPosition());
+        Standard_Real grasp_rotation = target_part->getPPGGraspRotation();  //TODO need to handle rotation of parts eventually too
         Standard_Real grasp_width = target_part->getPPGGraspWidth();
 
         YAML::Node designate_part_command;
@@ -283,9 +283,15 @@ void Assembler::generateAssemblySequence()
 
         std::cout << "Part type: " << part_type << std::endl;
 
+        std::cout << "Part name: " << initial_assembly_->getPartById(part_id)->getName();
+
         //Do nothing with the base object if it's internal  //TODO janky
         if (part_id == path[1]->assembly_->getPartIds()[0] && path[1]->assembly_->getParts()[0]->getType() == Part::INTERNAL)
+        {
+            std::cout << "base object - skipping" << std::endl;
+ 
             continue;
+        }
 
         YAML::Node place_part_command;
 
@@ -306,7 +312,7 @@ void Assembler::generateAssemblySequence()
 
             vibrate_part_command["command_properties"]["part-id"] = part_id;
 
-            commands.push_back(place_part_command);
+            commands.push_back(vibrate_part_command);
         }
 
         commands.push_back(place_part_command);
@@ -732,7 +738,7 @@ void Assembler::generateNegatives()
         if (part->getType() != Part::EXTERNAL)
             continue;
 
-            std::cout << "Creating part negative" << std::endl;
+        std::cout << "Creating part negative" << std::endl;
 
         part->positionPartInBay(bay_occupancy_);
 
@@ -752,7 +758,8 @@ void Assembler::generateGrasps()
 
     for (std::shared_ptr<Part> part : target_assembly_->getParts())
     {
-        part->generatePPGGraspPosition();
+        if (part->getType() == Part::INTERNAL)
+            part->generatePPGGraspPosition();
 
         part->generateVacuumGraspPosition();
     }

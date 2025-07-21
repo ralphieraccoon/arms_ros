@@ -213,6 +213,11 @@ gp_Vec SumPoints(gp_Pnt point_A, gp_Pnt point_B)
     return gp_Vec(point_A.X() + point_B.X(), point_A.Y() + point_B.Y(), point_A.Z() + point_B.Z());
 }
 
+gp_Vec SumPoints(gp_Pnt point_A, gp_Vec point_B)
+{
+    return gp_Vec(point_A.X() + point_B.X(), point_A.Y() + point_B.Y(), point_A.Z() + point_B.Z());
+}
+
 gp_Vec SubtractPoints(gp_Pnt point_A, gp_Pnt point_B)
 {
     return gp_Vec(point_A.X() - point_B.X(), point_A.Y() - point_B.Y(), point_A.Z() - point_B.Z());

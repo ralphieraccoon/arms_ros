@@ -282,90 +282,6 @@ void Part::generatePPGGraspPosition()
             TopoDS_Shape gripper_plate_1 = GenerateGripperPlate(normals[a], centers[a]);
             TopoDS_Shape gripper_plate_2 = GenerateGripperPlate(normals[b], centers[b]);
 
-            // //Create padle models and check for collisions
-            // TopoDS_Shape paddle_1 = BRepPrimAPI_MakeBox(10, 2, 10).Shape();
-            // TopoDS_Shape paddle_2 = BRepPrimAPI_MakeBox(10, 2, 10).Shape();
-
-            // //1st rotation
-            // gp_Dir source_normal_1(0, 1, 0);
-            // gp_Dir target_normal_1 = normals[a];
-
-            // gp_Pnt source_point_1(5, 0, 5);
-            // gp_Pnt target_point_1 = centers[a].Translated(1.1 * gp_Vec(normals[a]));
-
-            // gp_Vec rotation_axis_1;
-
-            // if ((gp_Vec(source_normal_1) ^ gp_Vec(target_normal_1)).Z() > 0)
-            //     rotation_axis_1 = gp_Vec(0, 0, 1);
-
-            // else
-            //     rotation_axis_1 = gp_Vec(0, 0, -1);
-
-            // Standard_Real angle_1 = source_normal_1.Angle(target_normal_1); 
-
-            // gp_Trsf rotation_1;
-
-            // gp_Ax1 axis_1(source_point_1, gp_Dir(rotation_axis_1));  // rotate around axis passing through source point
-            // rotation_1.SetRotation(axis_1, angle_1);
-
-            // BRepBuilderAPI_Transform rotTransformer_1(rotation_1);
-            // rotTransformer_1.Perform(paddle_1);
-            // paddle_1 = rotTransformer_1.Shape();
-
-            // gp_Pnt rotated_source_point_1 = source_point_1.Transformed(rotation_1);  // new location of P1 after rotation TODO requierd?
-
-            // gp_Vec translation_vector_1(rotated_source_point_1, target_point_1);
-
-            // gp_Trsf translation_1;
-            // translation_1.SetTranslation(translation_vector_1);
-
-            // BRepBuilderAPI_Transform transTransformer_1(translation_1);
-            // transTransformer_1.Perform(paddle_1);
-            // paddle_1 = transTransformer_1.Shape();
-
-
-
-
-
-
-
-            // //Second rotation
-            // gp_Dir source_normal_2(0, 1, 0);
-            // gp_Dir target_normal_2 = normals[b];
-
-            // gp_Pnt source_point_2(5, 0, 5);
-            // gp_Pnt target_point_2 = centers[b].Translated(1.1 * gp_Vec(normals[b]));
-
-            // gp_Vec rotation_axis_2;
-
-            // if ((gp_Vec(source_normal_2) ^ gp_Vec(target_normal_2)).Z() > 0)
-            //     rotation_axis_2 = gp_Vec(0, 0, 1);
-
-            // else
-            //     rotation_axis_2 = gp_Vec(0, 0, -1);
-
-            // Standard_Real angle_2 = source_normal_2.Angle(target_normal_2); 
-
-            // gp_Trsf rotation_2;
-
-            // gp_Ax1 axis_2(source_point_2, gp_Dir(rotation_axis_2));  // rotate around axis passing through source point
-            // rotation_2.SetRotation(axis_2, angle_2);
-
-            // BRepBuilderAPI_Transform rotTransformer_2(rotation_2);
-            // rotTransformer_2.Perform(paddle_2);
-            // paddle_2 = rotTransformer_2.Shape();
-
-            // gp_Pnt rotated_source_point_2 = source_point_2.Transformed(rotation_2);  // new location of P2 after rotation TODO requierd?
-
-            // gp_Vec translation_vector_2(rotated_source_point_2, target_point_2);
-
-            // gp_Trsf translation_2;
-            // translation_2.SetTranslation(translation_vector_2);
-
-            // BRepBuilderAPI_Transform transTransformer_2(translation_2);
-            // transTransformer_2.Perform(paddle_2);
-            // paddle_2 = transTransformer_2.Shape();
-
             //Intersect the paddles and the part
             TopoDS_Shape intersection_1 = ShapeIntersection(gripper_plate_1, *shape_);
 
@@ -385,22 +301,8 @@ void Part::generatePPGGraspPosition()
             builder.MakeCompound(compound);
 
             builder.Add(compound, *shape_);
-
             builder.Add(compound, gripper_plate_1);
-
             builder.Add(compound, gripper_plate_2);
-
-            // BRepMesh_IncrementalMesh mesher(compound, 0.1);
-
-            // StlAPI_Writer writer;
-
-            // std::stringstream ss;
-
-            // ss << WORKING_DIR << name_ << "_ppg_grasp_" << a << "_" << b << ".stl";
-
-            // writer.Write(compound, ss.str().c_str());
-
-
 
             std::cout << std::endl << "GRASP: " << std::endl;
             std::cout << "Face A center: " << centers[a].X() << ", " << centers[a].Y() << ", " << centers[a].Z() << std::endl;
